@@ -1,14 +1,17 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.DotNet.Scaffolding.Shared.Project;
+using Microsoft.EntityFrameworkCore;
+using PCRepairService.Models;
 
 namespace PCRepairService.Models
 {
-    public class AppDBContext : DbContext
+    public class ServiceDBContext : DbContext
     {
         protected readonly IConfiguration _configuration;
         public DbSet<Kunde> Kunde { get; set; }
         public DbSet<ServiceOrder> ServiceOrder { get; set; }
+        public DbSet<AISO> AISO { get; set; }
 
-        public AppDBContext(IConfiguration configuration)
+        public ServiceDBContext(IConfiguration configuration)
         {
             _configuration = configuration;
         }
@@ -41,6 +44,7 @@ namespace PCRepairService.Models
                 .WithMany()
                 .HasForeignKey(e => e.KundeId)
                 .OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<AISO>().HasKey(e => e.Id);
         }
 
 
