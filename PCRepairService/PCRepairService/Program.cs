@@ -1,16 +1,22 @@
 using Microsoft.Build.Framework;
 using Microsoft.EntityFrameworkCore;
+using PCRepairService;
 using PCRepairService.DataAccess;
 using PCRepairService.Interfaces;
-using PCRepairService.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
 
+// Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("PCRepairDB");
-builder.Services.AddScoped<IDA_AISO, DA_AISO>();
+builder.Services.AddScoped<IDA_ServiceOrder, DA_ServiceOrder>();
 builder.Services.AddDbContext<ServiceDBContext>(x => x.UseNpgsql(connectionString));
+builder.Services.AddSingleton<IDbContextFactory<ServiceDBContext>, ServiceDBContextFactory>();
+
+//builder.Services.AddLogging(builder => builder.AddConsole());
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -24,6 +30,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+//// Configure logging factory
+//var loggerFactory = LoggerFactory.Create(builder =>
+//{
+//    builder.AddConsole(); // Add Console logging provider
+//});
+
+//// Configure logging for DI
+//app.Services.AddSingleton(loggerFactory);
+//app.Services.AddLogging();
 
 app.UseHttpsRedirection();
 

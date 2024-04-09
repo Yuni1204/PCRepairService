@@ -1,15 +1,16 @@
 ﻿using Microsoft.DotNet.Scaffolding.Shared.Project;
 using Microsoft.EntityFrameworkCore;
+using PCRepairService.Interfaces;
 using PCRepairService.Models;
+using MessengerLibrary;
 
-namespace PCRepairService.Models
+namespace PCRepairService.DataAccess
 {
     public class ServiceDBContext : DbContext
     {
         protected readonly IConfiguration _configuration;
-        public DbSet<Kunde> Kunde { get; set; }
-        public DbSet<ServiceOrder> ServiceOrder { get; set; }
-        public DbSet<AISO> AISO { get; set; }
+        public DbSet<ServiceOrder> ServiceOrders { get; set; }
+        public DbSet<Message> OutboxMessages { get; set; }
 
         public ServiceDBContext(IConfiguration configuration)
         {
@@ -37,14 +38,8 @@ namespace PCRepairService.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Kunde>().HasKey(e => e.Id);
             modelBuilder.Entity<ServiceOrder>().HasKey(e => e.Id);
-            modelBuilder.Entity<ServiceOrder>()
-                .HasOne(e => e.Kunde)
-                .WithMany()
-                .HasForeignKey(e => e.KundeId)
-                .OnDelete(DeleteBehavior.SetNull);
-            modelBuilder.Entity<AISO>().HasKey(e => e.Id);
+            modelBuilder.Entity<Message>().HasKey(e => e.Id);
         }
 
 

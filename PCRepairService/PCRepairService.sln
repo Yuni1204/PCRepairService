@@ -4,10 +4,23 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.8.34701.33
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PCRepairService", "PCRepairService\PCRepairService.csproj", "{1A2C33A3-A135-42C6-83CC-8ABCCD61C8C3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{95AA81A7-BDF7-47F8-9732-B17DC769FB95} = {95AA81A7-BDF7-47F8-9732-B17DC769FB95}
+	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MessagingReceiver", "MessagingReceiver\MessagingReceiver.csproj", "{A83DA306-41A5-4C4A-9650-E729A9ABAF68}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RepairPlanner", "RepairPlanner\RepairPlanner.csproj", "{D93CCA09-B4FE-4DED-9BF9-91C4B8BD2C7C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RepairPlanner", "RepairPlanner\RepairPlanner.csproj", "{D93CCA09-B4FE-4DED-9BF9-91C4B8BD2C7C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OutboxWorker", "OutboxWorker\OutboxWorker.csproj", "{2571A76D-8CBC-4472-8BA6-0E6FDF3996A8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{95AA81A7-BDF7-47F8-9732-B17DC769FB95} = {95AA81A7-BDF7-47F8-9732-B17DC769FB95}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1B035C20-60E7-451E-B73E-8AA1C91CCAEF}"
+	ProjectSection(SolutionItems) = preProject
+		docker-compose.yml = docker-compose.yml
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessengerLibrary", "MessengerLibrary\MessengerLibrary.csproj", "{95AA81A7-BDF7-47F8-9732-B17DC769FB95}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,14 +32,18 @@ Global
 		{1A2C33A3-A135-42C6-83CC-8ABCCD61C8C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1A2C33A3-A135-42C6-83CC-8ABCCD61C8C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1A2C33A3-A135-42C6-83CC-8ABCCD61C8C3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A83DA306-41A5-4C4A-9650-E729A9ABAF68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A83DA306-41A5-4C4A-9650-E729A9ABAF68}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A83DA306-41A5-4C4A-9650-E729A9ABAF68}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A83DA306-41A5-4C4A-9650-E729A9ABAF68}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D93CCA09-B4FE-4DED-9BF9-91C4B8BD2C7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D93CCA09-B4FE-4DED-9BF9-91C4B8BD2C7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D93CCA09-B4FE-4DED-9BF9-91C4B8BD2C7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D93CCA09-B4FE-4DED-9BF9-91C4B8BD2C7C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2571A76D-8CBC-4472-8BA6-0E6FDF3996A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2571A76D-8CBC-4472-8BA6-0E6FDF3996A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2571A76D-8CBC-4472-8BA6-0E6FDF3996A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2571A76D-8CBC-4472-8BA6-0E6FDF3996A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95AA81A7-BDF7-47F8-9732-B17DC769FB95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95AA81A7-BDF7-47F8-9732-B17DC769FB95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95AA81A7-BDF7-47F8-9732-B17DC769FB95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95AA81A7-BDF7-47F8-9732-B17DC769FB95}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
