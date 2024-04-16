@@ -8,8 +8,8 @@ namespace MessengerLibrary
 {
     public interface IMessenger
     {
-        Task SendOutboxMessageAsync(Message messageobj);
-        void SendOutboxMessage(Message messageobj);
-        void HandleMessages(string exchange = "ServiceOrderReply");
+        Task SendMessageAsync(Message messageobj);
+        void SendMessage(Message messageobj);
+        void HandleMessages(string exchange = "_");
     }
 }

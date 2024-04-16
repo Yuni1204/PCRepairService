@@ -11,6 +11,7 @@ namespace PCRepairService.DataAccess
         protected readonly IConfiguration _configuration;
         public DbSet<ServiceOrder> ServiceOrders { get; set; }
         public DbSet<Message> OutboxMessages { get; set; }
+        public DbSet<SagaServiceOrder> ServiceOrderSagaLog { get; set; }
 
         public ServiceDBContext(IConfiguration configuration)
         {

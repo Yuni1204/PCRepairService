@@ -23,10 +23,10 @@ namespace PCRepairService.DataAccess
         {
             await _context.ServiceOrders.AddAsync(ServiceOrder);
             await _context.SaveChangesAsync();
-            //_logger.LogInformation($"added ServiceOrder: {ServiceOrder} at {DateTimeOffset.Now}");
+            _logger.LogInformation($"added ServiceOrder: {ServiceOrder} at {DateTimeOffset.Now}");
         }
 
-        public async Task AddWithMessageAsync(ServiceOrder ServiceOrder, string exchange, string messageType)
+        public async Task AddWithMessageAsync(ServiceOrder ServiceOrder, string exchange, string messageType, bool isSaga = false)
         {
             var message = new Message
             {
@@ -36,11 +36,23 @@ namespace PCRepairService.DataAccess
                 Timestamp = DateTime.UtcNow
             };
             await _context.ServiceOrders.AddAsync(ServiceOrder);
-            //_logger.LogInformation($"added ServiceOrder: {ServiceOrder} at {DateTimeOffset.Now}");
+            _logger.LogInformation($"added ServiceOrder: {ServiceOrder} at {DateTimeOffset.Now}");
+            if(isSaga)
+            {
+                //create Service order Saga Log
+                var sagalog = new SagaServiceOrder
+                {
+                    NextStep = "finish",
+                    ServiceOrderCreated = true
+                };
+                var result = await _context.ServiceOrderSagaLog.AddAsync(sagalog);
+                message.SagaId = result.GetDatabaseValuesAsync().Id;
+                _logger.LogInformation($"Started Saga: {sagalog} at {DateTimeOffset.Now}");
+            }
             await _context.OutboxMessages.AddAsync(message);
-            //_logger.LogInformation($"added message: {message} at {DateTimeOffset.Now}");
-
+            _logger.LogInformation($"added message: {message} at {DateTimeOffset.Now}");
             await _context.SaveChangesAsync();
+
         }
 
         //public async Task CreateServiceOrder(ServiceOrder serviceOrder, long kundeId)
@@ -61,7 +73,31 @@ namespace PCRepairService.DataAccess
             {
                 _context.ServiceOrders.Remove(ServiceOrder);
                 await _context.SaveChangesAsync();
-                //_logger.LogInformation($"deleted ServiceOrder: {ServiceOrder} at {DateTimeOffset.Now}");
+                _logger.LogInformation($"deleted ServiceOrder: {ServiceOrder} at {DateTimeOffset.Now}");
+            }
+        }
+
+        public async Task EditAsync(long id)
+        {
+            var dbEntry = await _context.ServiceOrderSagaLog.FindAsync(id);
+            if (dbEntry != null)
+            {
+                dbEntry.NextStep = null;
+                dbEntry.AppointmentDatesConfirmed = true;
+                _context.ServiceOrderSagaLog.Entry(dbEntry).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task EditSagaAsync(long id)
+        {
+            var dbEntry = await _context.ServiceOrderSagaLog.FindAsync(id);
+            if (dbEntry != null)
+            {
+                dbEntry.NextStep = null;
+                dbEntry.AppointmentDatesConfirmed = true;
+                _context.ServiceOrderSagaLog.Entry(dbEntry).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
             }
         }
 

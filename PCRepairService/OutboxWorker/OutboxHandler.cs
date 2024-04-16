@@ -40,7 +40,7 @@ namespace OutboxWorker
                 {
                     foreach (var message in messages)
                     {   //send message
-                        await _messaging.SendOutboxMessageAsync(message);
+                        await _messaging.SendMessageAsync(message);
                         //delete from table
                         dbContext.OutboxMessages.Remove(message);
                         await dbContext.SaveChangesAsync();

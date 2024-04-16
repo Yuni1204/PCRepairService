@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using PCRepairService.DataAccess;
 using PCRepairService.Interfaces;
 using PCRepairService.Models;
+using Swashbuckle.AspNetCore.Annotations;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace PCRepairService.Controllers
@@ -18,13 +19,15 @@ namespace PCRepairService.Controllers
     {
         private readonly ILogger _logger;
         private readonly IDA_ServiceOrder _DAServiceOrder;
+        private readonly ISagaHandler _SagaHandler;
         private readonly ServiceDBContext _context;
 
-        public ModuServiceOrderController(ServiceDBContext context, IDA_ServiceOrder so, ILogger<ModuServiceOrderController> logger)
+        public ModuServiceOrderController(ServiceDBContext context, IDA_ServiceOrder so, ILogger<ModuServiceOrderController> logger, ISagaHandler sagaHandler)
         {
             _context = context;
             _DAServiceOrder = so;
             _logger = logger;
+            _SagaHandler = sagaHandler;
         }
 
         // GET: api/ServiceOrder
@@ -54,34 +57,34 @@ namespace PCRepairService.Controllers
 
         // PUT: api/ServiceOrder/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> PutServiceOrder(long id, ServiceOrder ServiceOrder)
-        //{
-        //    if (id != ServiceOrder.Id)
-        //    {
-        //        return BadRequest();
-        //    }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutServiceOrder(long id, ServiceOrder ServiceOrder)
+        {
+            if (id != ServiceOrder.Id)
+            {
+                return BadRequest();
+            }
 
-        //    _context.Entry(ServiceOrder).State = EntityState.Modified;
+            _context.Entry(ServiceOrder).State = EntityState.Modified;
 
-        //    try
-        //    {
-        //        await _context.SaveChangesAsync();
-        //    }
-        //    catch (DbUpdateConcurrencyException)
-        //    {
-        //        if (!ServiceOrderExists(id))
-        //        {
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            throw;
-        //        }
-        //    }
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ServiceOrderExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
 
-        //    return NoContent();
-        //}
+            return NoContent();
+        }
 
         // POST: api/ServiceOrder
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -92,6 +95,21 @@ namespace PCRepairService.Controllers
             //imagine validation
 
             await _DAServiceOrder.AddWithMessageAsync(ServiceOrder, "ServiceOrders", "ServiceOrderCreated");
+
+            return CreatedAtAction("GetServiceOrder", new { id = ServiceOrder.Id }, ServiceOrder);
+        }
+        
+        [HttpPost("saga")]
+        //[Route("saga")]
+        [SwaggerOperation("CreateServiceOrder")]
+        public async Task<ActionResult<ServiceOrder>> PostServiceOrderSaga(ServiceOrder ServiceOrder)
+        {
+            _logger.LogInformation("PostServiceOrderSaga Requested");
+            //imagine validation
+
+            await _SagaHandler.StartServiceOrderSagaAsync(ServiceOrder);
+
+            //await _DAServiceOrder.AddWithMessageAsync(ServiceOrder, "ServiceOrders", "ServiceOrderCreated");
 
             return CreatedAtAction("GetServiceOrder", new { id = ServiceOrder.Id }, ServiceOrder);
         }

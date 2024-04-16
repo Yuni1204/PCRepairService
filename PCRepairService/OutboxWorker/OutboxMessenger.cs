@@ -1,21 +1,26 @@
-﻿using RabbitMQ.Client;
-using System.Text.Json;
-using System.Text;
+﻿using MessengerLibrary;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
 
-namespace MessengerLibrary
+namespace OutboxWorker
 {
-    public class Messenger : IMessenger //not in use anymore
+    public class OutboxMessenger : IMessenger
     {
-        //rabbitmq
-        protected readonly ConnectionFactory _factory;
-        protected readonly IConnection _connection;
-        protected readonly IModel _channel;
-        protected readonly IBasicProperties _props;
-        protected readonly EventingBasicConsumer _consumer;
-        protected readonly string queueName;
+        private readonly ConnectionFactory _factory;
+        private readonly IConnection _connection;
+        private readonly IModel _channel;
+        private readonly IBasicProperties _props;
+        private readonly EventingBasicConsumer _consumer;
+        private readonly string queueName;
+        private readonly ILogger _logger;
 
-        public Messenger()
+        public OutboxMessenger(ILogger<OutboxMessenger> logger)
         {
             _factory = new ConnectionFactory { HostName = "rabbitmq", Port = 5672 };
             _connection = _factory.CreateConnection();
@@ -26,6 +31,7 @@ namespace MessengerLibrary
             _consumer = new EventingBasicConsumer(_channel);
             queueName = _channel.QueueDeclare().QueueName;
             HandleMessages();
+            _logger = logger;
         }
 
         public async Task SendMessageAsync(Message messageobj)
@@ -45,7 +51,7 @@ namespace MessengerLibrary
                                  routingKey: string.Empty,
                                  basicProperties: _props,
                                  body: body);
-            Console.WriteLine($" [x] Sent {content}");
+            _logger.LogInformation($" [x] Sent {content}");
             await Task.CompletedTask;
         }
 
@@ -66,36 +72,12 @@ namespace MessengerLibrary
                                  routingKey: string.Empty,
                                  basicProperties: _props,
                                  body: body);
-            Console.WriteLine($" [x] Sent {content}");
+            _logger.LogInformation($" [x] Sent {content}");
         }
 
         public void HandleMessages(string exchange = "_")
         {
-            _channel.QueueBind(queue: queueName,
-                              exchange: exchange,
-                              routingKey: string.Empty);
-
-            _consumer.Received += (model, ea) =>
-            {
-                var header = (byte[])ea.BasicProperties.Headers["MessageType"];
-                var messageType = Encoding.UTF8.GetString(header);
-                if (messageType == "Reply")
-                {
-                    var body = ea.Body.ToArray();
-                    var message = Encoding.UTF8.GetString(body);
-                    Console.WriteLine($" [x] Received: {message}");
-                }
-                else
-                {
-                    var body = ea.Body.ToArray();
-                    var message = Encoding.UTF8.GetString(body);
-                    Console.WriteLine($" [x] unknown message Received: {message}");
-                }
-            };
-            _channel.BasicConsume(queue: queueName,
-                                 autoAck: true,
-                                 consumer: _consumer);
+            return;
         }
-
     }
 }

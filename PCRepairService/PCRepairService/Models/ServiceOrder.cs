@@ -11,5 +11,8 @@ namespace PCRepairService.Models
         public string? Name { get; set; }
         public int Cost { get; set; }
         public bool IsCompleted { get; set; }
+        public DateOnly? HandoverAppointment {  get; set; }
+        public DateOnly? ReturnDate { get; set; }
+
     }
 }

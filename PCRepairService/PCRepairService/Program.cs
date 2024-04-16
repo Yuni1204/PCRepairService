@@ -1,3 +1,4 @@
+using MessengerLibrary;
 using Microsoft.Build.Framework;
 using Microsoft.EntityFrameworkCore;
 using PCRepairService;
@@ -14,6 +15,9 @@ var connectionString = builder.Configuration.GetConnectionString("PCRepairDB");
 builder.Services.AddScoped<IDA_ServiceOrder, DA_ServiceOrder>();
 builder.Services.AddDbContext<ServiceDBContext>(x => x.UseNpgsql(connectionString));
 builder.Services.AddSingleton<IDbContextFactory<ServiceDBContext>, ServiceDBContextFactory>();
+builder.Services.AddSingleton<IMessenger, ServiceMessenger>();
+builder.Services.AddScoped<ISagaHandler, SagaHandler>();
+//builder.Services.AddSingleton<IServiceScopeFactory, typeof(ServicescopeFactory<>) >
 
 //builder.Services.AddLogging(builder => builder.AddConsole());
 
