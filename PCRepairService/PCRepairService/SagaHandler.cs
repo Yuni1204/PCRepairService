@@ -20,6 +20,7 @@ namespace PCRepairService
 
         public async Task StartServiceOrderSagaAsync(ServiceOrder serviceOrder)
         {
+
             await _daServiceOrder.AddWithMessageAsync(serviceOrder, "ServiceOrders", "ServiceOrderCreated", true);
 
             await Task.CompletedTask;

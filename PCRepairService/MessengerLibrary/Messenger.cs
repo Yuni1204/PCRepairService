@@ -40,7 +40,6 @@ namespace MessengerLibrary
             string content = JsonSerializer.Serialize(messageobj.content);
             //var message = GetMessage(jsonstring);
             var body = Encoding.UTF8.GetBytes(content);
-            //Thread.Sleep(100); //simulate processing delay
             _channel.BasicPublish(exchange: messageobj.exchange,
                                  routingKey: string.Empty,
                                  basicProperties: _props,
@@ -61,7 +60,6 @@ namespace MessengerLibrary
             string content = JsonSerializer.Serialize(messageobj.content);
             //var message = GetMessage(jsonstring);
             var body = Encoding.UTF8.GetBytes(content);
-            //Thread.Sleep(100); //simulate processing delay
             _channel.BasicPublish(exchange: messageobj.exchange,
                                  routingKey: string.Empty,
                                  basicProperties: _props,

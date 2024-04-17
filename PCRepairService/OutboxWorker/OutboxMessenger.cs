@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace OutboxWorker
 {
@@ -36,17 +35,19 @@ namespace OutboxWorker
 
         public async Task SendMessageAsync(Message messageobj)
         {
+
             if (messageobj.messageType == null) messageobj.messageType = "null";
+            if (messageobj.SagaId == null) messageobj.SagaId = -1;
             _props.Headers = new Dictionary<string, object>
             {
-                { "MessageType", messageobj.messageType }
+                { "MessageType", messageobj.messageType },
+                { "SagaId", messageobj.SagaId }
             };
 
 
             string content = JsonSerializer.Serialize(messageobj.content);
             //var message = GetMessage(jsonstring);
             var body = Encoding.UTF8.GetBytes(content);
-            //Thread.Sleep(100); //simulate processing delay
             _channel.BasicPublish(exchange: messageobj.exchange,
                                  routingKey: string.Empty,
                                  basicProperties: _props,
@@ -67,7 +68,6 @@ namespace OutboxWorker
             string content = JsonSerializer.Serialize(messageobj.content);
             //var message = GetMessage(jsonstring);
             var body = Encoding.UTF8.GetBytes(content);
-            //Thread.Sleep(100); //simulate processing delay
             _channel.BasicPublish(exchange: messageobj.exchange,
                                  routingKey: string.Empty,
                                  basicProperties: _props,

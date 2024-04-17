@@ -28,6 +28,7 @@ namespace PCRepairService.DataAccess
 
         public async Task AddWithMessageAsync(ServiceOrder ServiceOrder, string exchange, string messageType, bool isSaga = false)
         {
+            SagaServiceOrder? sagalog = null;
             var message = new Message
             {
                 exchange = exchange,
@@ -35,24 +36,32 @@ namespace PCRepairService.DataAccess
                 content = JsonSerializer.Serialize(ServiceOrder),
                 Timestamp = DateTime.UtcNow
             };
-            await _context.ServiceOrders.AddAsync(ServiceOrder);
-            _logger.LogInformation($"added ServiceOrder: {ServiceOrder} at {DateTimeOffset.Now}");
             if(isSaga)
             {
                 //create Service order Saga Log
-                var sagalog = new SagaServiceOrder
+                sagalog = new SagaServiceOrder
                 {
                     NextStep = "finish",
                     ServiceOrderCreated = true
                 };
-                var result = await _context.ServiceOrderSagaLog.AddAsync(sagalog);
-                message.SagaId = result.GetDatabaseValuesAsync().Id;
+                _context.ServiceOrderSagaLog.Add(sagalog);
+                _context.SaveChanges();
+                message.SagaId = (sagalog != null) ? sagalog.Id : -1;
+
                 _logger.LogInformation($"Started Saga: {sagalog} at {DateTimeOffset.Now}");
             }
+            await _context.ServiceOrders.AddAsync(ServiceOrder);
+            _logger.LogInformation($"added ServiceOrder: {ServiceOrder} at {DateTimeOffset.Now}");
             await _context.OutboxMessages.AddAsync(message);
             _logger.LogInformation($"added message: {message} at {DateTimeOffset.Now}");
             await _context.SaveChangesAsync();
+            _logger.LogInformation($"SaveChangesAsync at {DateTimeOffset.Now}");
 
+        }
+
+        public async Task CreateSagaLog()
+        {
+            await Task.CompletedTask;
         }
 
         //public async Task CreateServiceOrder(ServiceOrder serviceOrder, long kundeId)

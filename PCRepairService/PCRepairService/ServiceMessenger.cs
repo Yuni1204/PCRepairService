@@ -9,7 +9,7 @@ using System.Text.Json;
 
 namespace PCRepairService
 {
-    public class ServiceMessenger : IMessenger
+    public class ServiceMessenger : BackgroundService, IMessenger 
     {
         //rabbitmq
         protected readonly ConnectionFactory _factory;
@@ -23,7 +23,7 @@ namespace PCRepairService
 
         public ServiceMessenger(ILogger<ServiceMessenger> logger, IServiceScopeFactory serviceScopeFactory)
         {
-            _factory = new ConnectionFactory { HostName = "rabbitmq", Port = 5672 };
+            _factory = new ConnectionFactory { HostName = "localhost" };
             _connection = _factory.CreateConnection();
             _channel = _connection.CreateModel();
             _props = _channel.CreateBasicProperties();
@@ -37,18 +37,40 @@ namespace PCRepairService
             _logger = logger;
 
 
+            
+        }
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        {
             HandleMessages();
+            return Task.CompletedTask;
         }
         public void HandleMessages(string exchange = "ServiceOrderReply")
         {
+            _logger.LogInformation($"HandleMessages started at {DateTimeOffset.Now}");
             _channel.QueueBind(queue: queueName,
                               exchange: exchange,
                               routingKey: string.Empty);
 
             _consumer.Received += async (model, ea) =>
             {
-                var header = (byte[])ea.BasicProperties.Headers["MessageType"];
-                var messageType = Encoding.UTF8.GetString(header);
+                byte[]? headerMessType;
+                long sagaId;
+                string messageType;
+                if (ea.BasicProperties.IsHeadersPresent())
+                {
+                    headerMessType = (ea.BasicProperties.Headers.ContainsKey("MessageType")) ? (byte[])ea.BasicProperties.Headers["MessageType"] : Encoding.UTF8.GetBytes("null");
+                    messageType = Encoding.UTF8.GetString(headerMessType);
+                    sagaId = (ea.BasicProperties.Headers.ContainsKey("SagaId")) ? (long)ea.BasicProperties.Headers["SagaId"] : -1;
+                }
+                else
+                { //is not allowed to happen, every message should have a type
+                    throw new Exception();
+                }
+                //    //get MessageType
+                //    var header = (byte[])ea.BasicProperties.Headers["MessageType"];
+                //messageType = Encoding.UTF8.GetString(header);
+
+
                 var body = ea.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
                 if (messageType == "Reply")
@@ -57,16 +79,19 @@ namespace PCRepairService
                 }
                 else if(messageType == "AppointmentDatesConfirmed")
                 {
-                    var messageobj = JsonSerializer.Deserialize<Message>(message);
-                    if(messageobj != null && messageobj.SagaId != null) 
+                    //var messageobj = JsonSerializer.Deserialize<Message>(message);
+                    //var messageobj = JsonSerializer.Deserialize<Message>(message);
+                    //if(messageobj != null && sagaId != -1) 
+                    if(message != null && sagaId != -1) 
                     {
-                        _logger.LogInformation($"ending ServiceOrderSaga for {messageobj.SagaId}");
+                        _logger.LogInformation($"ending ServiceOrderSaga for sagaID {sagaId} at {DateTimeOffset.Now}");
                         using (var scope = _serviceScopeFactory.CreateScope())
                         {
-                            var sagaHandler = scope.ServiceProvider.GetService<SagaHandler>();
+                            var sagaHandler = scope.ServiceProvider.GetService<ISagaHandler>();
                             if( sagaHandler != null )
                             {
-                                await sagaHandler.EndServiceOrderSagaAsync((long)messageobj.SagaId);
+                                await sagaHandler.EndServiceOrderSagaAsync(sagaId);
+                                _logger.LogInformation($"ENDSERVICEORDERSAGAASYNC executed at {DateTimeOffset.Now} ");
                             }
                             else
                             {
@@ -76,7 +101,7 @@ namespace PCRepairService
                     }
                     else
                     {
-                        _logger.LogInformation($"messageType AppointmentDatesConfirmed body was null");
+                        _logger.LogInformation($"messageType AppointmentDatesConfirmed body was null or no sagaid");
                     }
                 }
                 else
@@ -101,7 +126,6 @@ namespace PCRepairService
             string content = JsonSerializer.Serialize(messageobj.content);
             //var message = GetMessage(jsonstring);
             var body = Encoding.UTF8.GetBytes(content);
-            //Thread.Sleep(100); //simulate processing delay
             _channel.BasicPublish(exchange: messageobj.exchange,
                                  routingKey: string.Empty,
                                  basicProperties: _props,
@@ -123,7 +147,6 @@ namespace PCRepairService
             string content = JsonSerializer.Serialize(messageobj.content);
             //var message = GetMessage(jsonstring);
             var body = Encoding.UTF8.GetBytes(content);
-            //Thread.Sleep(100); //simulate processing delay
             _channel.BasicPublish(exchange: messageobj.exchange,
                                  routingKey: string.Empty,
                                  basicProperties: _props,
