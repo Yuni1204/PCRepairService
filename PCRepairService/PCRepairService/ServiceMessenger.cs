@@ -1,5 +1,7 @@
 ﻿using MessengerLibrary;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using PCRepairService.Interfaces;
 using PCRepairService.Models;
 using RabbitMQ.Client;
@@ -44,6 +46,7 @@ namespace PCRepairService
             HandleMessages();
             return Task.CompletedTask;
         }
+
         public void HandleMessages(string exchange = "ServiceOrderReply")
         {
             _logger.LogInformation($"HandleMessages started at {DateTimeOffset.Now}");
@@ -53,6 +56,7 @@ namespace PCRepairService
 
             _consumer.Received += async (model, ea) =>
             {
+                _logger.LogInformation("[*****] consumer.Received");
                 byte[]? headerMessType;
                 long sagaId;
                 string messageType;
@@ -61,57 +65,18 @@ namespace PCRepairService
                     headerMessType = (ea.BasicProperties.Headers.ContainsKey("MessageType")) ? (byte[])ea.BasicProperties.Headers["MessageType"] : Encoding.UTF8.GetBytes("null");
                     messageType = Encoding.UTF8.GetString(headerMessType);
                     sagaId = (ea.BasicProperties.Headers.ContainsKey("SagaId")) ? (long)ea.BasicProperties.Headers["SagaId"] : -1;
+                    var messagebody = ea.Body.ToArray();
+                    var messageString = Encoding.UTF8.GetString(messagebody);
+                    await ProcessMessageByHeader(messageType, sagaId, messageString);
                 }
                 else
                 { //is not allowed to happen, every message should have a type
                     throw new Exception();
                 }
-                //    //get MessageType
-                //    var header = (byte[])ea.BasicProperties.Headers["MessageType"];
-                //messageType = Encoding.UTF8.GetString(header);
-
-
-                var body = ea.Body.ToArray();
-                var message = Encoding.UTF8.GetString(body);
-                if (messageType == "Reply")
-                {
-                    _logger.LogInformation($" [x] Received: {message}");
-                }
-                else if(messageType == "AppointmentDatesConfirmed")
-                {
-                    //var messageobj = JsonSerializer.Deserialize<Message>(message);
-                    //var messageobj = JsonSerializer.Deserialize<Message>(message);
-                    //if(messageobj != null && sagaId != -1) 
-                    if(message != null && sagaId != -1) 
-                    {
-                        _logger.LogInformation($"ending ServiceOrderSaga for sagaID {sagaId} at {DateTimeOffset.Now}");
-                        using (var scope = _serviceScopeFactory.CreateScope())
-                        {
-                            var sagaHandler = scope.ServiceProvider.GetService<ISagaHandler>();
-                            if( sagaHandler != null )
-                            {
-                                await sagaHandler.EndServiceOrderSagaAsync(sagaId);
-                                _logger.LogInformation($"ENDSERVICEORDERSAGAASYNC executed at {DateTimeOffset.Now} ");
-                            }
-                            else
-                            {
-                                _logger.LogError("Creating Scoped SagaHandler from serviceScopeFactory returned null!");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        _logger.LogInformation($"messageType AppointmentDatesConfirmed body was null or no sagaid");
-                    }
-                }
-                else
-                {
-                    _logger.LogInformation($" [x] unknown message Received: {message}");
-                }
             };
             _channel.BasicConsume(queue: queueName,
-                                 autoAck: true,
-                                 consumer: _consumer);
+                                autoAck: true,
+                                consumer: _consumer);
         }
 
         public async Task SendMessageAsync(Message messageobj)
@@ -134,7 +99,6 @@ namespace PCRepairService
             await Task.CompletedTask;
         }
 
-
         public void SendMessage(Message messageobj)
         {
             if (messageobj.messageType == null) messageobj.messageType = "null";
@@ -152,6 +116,137 @@ namespace PCRepairService
                                  basicProperties: _props,
                                  body: body);
             Console.WriteLine($" [x] Sent {content}");
+        }
+
+        private async Task ProcessMessageByHeader(string messageType, long sagaId, string? content)
+        {
+            string? logmessage = null;
+            switch (messageType)
+            {
+                case "Reply":
+                    logmessage = $" [x] Received: {content}";
+                    break;
+                case "AppointmentDatesConfirmed":
+                    logmessage = await CaseAppointmentSuccess(content, sagaId);
+                    break;
+                case "AppointmentDatesFailed":
+                    logmessage = await CaseAppointmentFail(content, sagaId);
+                    break;
+                case "SpareCarConfirmed":
+                    logmessage = await CaseSpareCarSuccess(content, sagaId);
+                    break;
+                case "SpareCarFailed":
+                    logmessage = await CaseSpareCarFail(content, sagaId);
+                    break;
+                default:
+                    logmessage = $" [x] unknown message Received: {content}";
+                    break;
+            }
+            _logger.LogInformation($"{logmessage}");
+        }
+
+        private async Task<string> CaseAppointmentSuccess(string? content, long sagaId)
+        {
+            if (content != null && sagaId != -1)
+            {
+                using (var scope = _serviceScopeFactory.CreateScope())
+                {
+                    var sagaHandler = scope.ServiceProvider.GetService<ISagaHandler>();
+                    if (sagaHandler != null)
+                    {
+                        var serviceOrder = JsonSerializer.Deserialize<ServiceOrder>(content);
+                        if (serviceOrder == null) throw new Exception(content);
+                        await sagaHandler.ReserveSpareCar(serviceOrder, sagaId);
+                        return $"CaseAppointmentSuccess for SagaId {sagaId} ended at {DateTimeOffset.Now} ";
+                    }
+                    else
+                    {
+                        return "Creating Scoped SagaHandler from serviceScopeFactory returned null!";
+                    }
+                }
+            }
+            else
+            {
+                return $"messageType AppointmentDatesConfirmed body was null or no sagaid";
+            }
+        }
+
+        private async Task<string> CaseAppointmentFail(string? messageString, long sagaId)
+        {
+            if (messageString != null && sagaId != -1)
+            {
+                using (var scope = _serviceScopeFactory.CreateScope())
+                {
+                    var sagaHandler = scope.ServiceProvider.GetService<ISagaHandler>();
+                    if (sagaHandler != null)
+                    {
+                        var serviceOrder = JsonSerializer.Deserialize<ServiceOrder>(messageString);
+                        if (serviceOrder == null) throw new Exception(messageString);
+                        await sagaHandler.CompensateConfirmAppointmentFail(serviceOrder, sagaId);
+                        return $"CaseAppointmentFail for SagaId {sagaId} ended at {DateTimeOffset.Now} ";
+                    }
+                    else
+                    {
+                        return "Creating Scoped SagaHandler from serviceScopeFactory returned null!";
+                    }
+                }
+            }
+            else
+            {
+                return $"messageType AppointmentDatesFail body was null or no sagaid";
+            }
+        }
+
+        private async Task<string> CaseSpareCarSuccess(string? messageString, long sagaId)
+        {
+            if (messageString != null && sagaId != -1)
+            {
+                using (var scope = _serviceScopeFactory.CreateScope())
+                {
+                    var sagaHandler = scope.ServiceProvider.GetService<ISagaHandler>();
+                    if (sagaHandler != null)
+                    {
+                        var serviceOrder = JsonSerializer.Deserialize<ServiceOrder>(messageString);
+                        if (serviceOrder == null) throw new Exception(messageString);
+                        await sagaHandler.EndServiceOrderSagaAsync(serviceOrder, sagaId);
+                        return $"CaseSpareCarSuccess for SagaId {sagaId} ended at {DateTimeOffset.Now} ";
+                    }
+                    else
+                    {
+                        return "Creating Scoped SagaHandler from serviceScopeFactory returned null!";
+                    }
+                }
+            }
+            else
+            {
+                return $"messageType SpareCarSuccess body was null or no sagaid";
+            }
+        }
+        
+        private async Task<string> CaseSpareCarFail(string? messageString, long sagaId)
+        {
+            if (messageString != null && sagaId != -1)
+            {
+                using (var scope = _serviceScopeFactory.CreateScope())
+                {
+                    var sagaHandler = scope.ServiceProvider.GetService<ISagaHandler>();
+                    if (sagaHandler != null)
+                    {
+                        var serviceOrder = JsonSerializer.Deserialize<ServiceOrder>(messageString);
+                        if (serviceOrder == null) throw new Exception(messageString);
+                        await sagaHandler.CompensateReserveSpareCarFail(serviceOrder, sagaId);
+                        return $"CaseSpareCarFail for SagaId {sagaId} ended at {DateTimeOffset.Now} ";
+                    }
+                    else
+                    {
+                        return "Creating Scoped SagaHandler from serviceScopeFactory returned null!";
+                    }
+                }
+            }
+            else
+            {
+                return $"messageType SpareCarFail body was null or no sagaid";
+            }
         }
 
     }

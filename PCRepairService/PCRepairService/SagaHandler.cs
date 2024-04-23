@@ -20,15 +20,38 @@ namespace PCRepairService
 
         public async Task StartServiceOrderSagaAsync(ServiceOrder serviceOrder)
         {
-
-            await _daServiceOrder.AddWithMessageAsync(serviceOrder, "ServiceOrders", "ServiceOrderCreated", true);
-
-            await Task.CompletedTask;
+            var sagaId = await _daServiceOrder.CreateSagaAsync("ConfirmAppointment");
+            await ConfirmAppointment(serviceOrder, sagaId);
+            //await _daServiceOrder.AddWithMessageAsync(serviceOrder, "ServiceOrders", "ServiceOrderCreated", true);
+            
         }
 
-        public async Task EndServiceOrderSagaAsync(long id)
+        public async Task ConfirmAppointment(ServiceOrder serviceOrder, long sagaId)
         {
-            await _daServiceOrder.EditSagaAsync(id); //bisher setzt er endserviceorder saga von alleine
+            await _daServiceOrder.SagaAddWithMessageAsync(serviceOrder, "ServiceOrders", "AppointmentSelected", "SpareCar", sagaId);
+        }
+
+        public async Task CompensateConfirmAppointmentFail(ServiceOrder serviceOrder, long sagaId)
+        {
+            serviceOrder.ReturnDate = null;
+            serviceOrder.HandoverAppointment = null;
+            await _daServiceOrder.EditAsync(sagaId, "null", serviceOrder);
+            await _daServiceOrder.SagaMessageAsync(serviceOrder, "ServiceOrders", "_", "null", sagaId, true);
+        }
+
+        public async Task ReserveSpareCar(ServiceOrder serviceOrder, long sagaId)
+        {
+            await _daServiceOrder.SagaMessageAsync(serviceOrder, "ServiceOrders", "ReserveSpareCar", "finish", sagaId, false);
+        }
+
+        public async Task CompensateReserveSpareCarFail(ServiceOrder serviceOrder, long sagaId)
+        {
+            await _daServiceOrder.SagaMessageAsync(serviceOrder, "ServiceOrders", "CancelAppointment", "AppointmentReset", sagaId, true);
+        }
+
+        public async Task EndServiceOrderSagaAsync(ServiceOrder serviceOrder, long id)
+        {
+            await _daServiceOrder.EditSagaAsync(id, "null", false); //bisher setzt er endserviceorder saga von alleine
         }
     }
 }

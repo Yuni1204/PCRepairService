@@ -5,6 +5,8 @@ using PCRepairService.Models;
 using Microsoft.CodeAnalysis.Text;
 using System.Text.Json;
 using MessengerLibrary;
+using PCRepairService.Migrations;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace PCRepairService.DataAccess
 {
@@ -19,61 +21,141 @@ namespace PCRepairService.DataAccess
             _logger = logger;
         }
 
-        public async Task AddAsync(ServiceOrder ServiceOrder)
+        public async Task AddAsync(ServiceOrder serviceOrder)
         {
-            await _context.ServiceOrders.AddAsync(ServiceOrder);
+            serviceOrder.Description = "noPatterns " + serviceOrder.Description;
+            await _context.ServiceOrders.AddAsync(serviceOrder);
             await _context.SaveChangesAsync();
-            _logger.LogInformation($"added ServiceOrder: {ServiceOrder} at {DateTimeOffset.Now}");
+            _logger.LogInformation($"added ServiceOrder: {serviceOrder} at {DateTimeOffset.Now}");
         }
 
-        public async Task AddWithMessageAsync(ServiceOrder ServiceOrder, string exchange, string messageType, bool isSaga = false)
+        public async Task AddWithMessageAsync(ServiceOrder serviceOrder, string exchange, string messageType)
         {
-            SagaServiceOrder? sagalog = null;
+            serviceOrder.Description = "OnlyOutboxMessaging " + serviceOrder.Description;
+            await _context.ServiceOrders.AddAsync(serviceOrder);
+            _logger.LogInformation($"added ServiceOrder: {serviceOrder} at {DateTimeOffset.Now}");
+            await _context.SaveChangesAsync();
             var message = new Message
             {
+                Id = serviceOrder.Id,
                 exchange = exchange,
                 messageType = messageType,
-                content = JsonSerializer.Serialize(ServiceOrder),
+                content = JsonSerializer.Serialize(serviceOrder),
                 Timestamp = DateTime.UtcNow
             };
-            if(isSaga)
-            {
-                //create Service order Saga Log
-                sagalog = new SagaServiceOrder
-                {
-                    NextStep = "finish",
-                    ServiceOrderCreated = true
-                };
-                _context.ServiceOrderSagaLog.Add(sagalog);
-                _context.SaveChanges();
-                message.SagaId = (sagalog != null) ? sagalog.Id : -1;
-
-                _logger.LogInformation($"Started Saga: {sagalog} at {DateTimeOffset.Now}");
-            }
-            await _context.ServiceOrders.AddAsync(ServiceOrder);
-            _logger.LogInformation($"added ServiceOrder: {ServiceOrder} at {DateTimeOffset.Now}");
             await _context.OutboxMessages.AddAsync(message);
             _logger.LogInformation($"added message: {message} at {DateTimeOffset.Now}");
             await _context.SaveChangesAsync();
             _logger.LogInformation($"SaveChangesAsync at {DateTimeOffset.Now}");
-
         }
 
-        public async Task CreateSagaLog()
+        public async Task<long> CreateSagaAsync(String nextSaga)
         {
-            await Task.CompletedTask;
+            var sagalog = new SagaServiceOrder
+            {
+                NextStep = nextSaga,
+                ServiceOrderCreated = true
+            };
+            await _context.ServiceOrderSagaLog.AddAsync(sagalog);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation($"Started Saga: {sagalog.Id} at {DateTimeOffset.Now}");
+            return sagalog.Id;
         }
 
-        //public async Task CreateServiceOrder(ServiceOrder serviceOrder, long kundeId)
-        //{
-        //    using (var context = new AppDBContext(_configuration))
-        //    {
-        //        serviceOrder.KundeId = kundeId;
-        //        //context.Entry(serviceOrder).State = EntityState.Modified;
+        public async Task SagaAddWithMessageAsync(ServiceOrder serviceOrder, string exchange, string messageType, 
+                                                    string nextSaga, long sagaId)
+        {
+            serviceOrder.Description = "SagaPatternOutbox " + serviceOrder.Description;
+            await _context.ServiceOrders.AddAsync(serviceOrder);
+            _logger.LogInformation($"added ServiceOrder at {DateTimeOffset.Now}");
+            await _context.SaveChangesAsync();
+            var message = new Message
+            {
+                Id = serviceOrder.Id,
+                exchange = exchange,
+                messageType = messageType,
+                content = JsonSerializer.Serialize(serviceOrder),
+                Timestamp = DateTime.UtcNow,
+                SagaId = sagaId
+            };            
+            await _context.OutboxMessages.AddAsync(message);
+            _logger.LogInformation($"added message at {DateTimeOffset.Now}");
+            await _context.SaveChangesAsync();
+            _logger.LogInformation($"SaveChangesAsync at {DateTimeOffset.Now}");
+            await EditSagaAsync(sagaId, nextSaga, false);
+        }
 
-        //        int x = await (context.SaveChangesAsync());
-        //    }
-        //}
+        public async Task SagaMessageAsync(ServiceOrder serviceOrder, string exchange, string messageType,
+                                                    string nextSaga, long sagaId, bool compensate)
+        {
+            var message = new Message
+            {
+                Id = serviceOrder.Id,
+                exchange = exchange,
+                messageType = messageType,
+                content = JsonSerializer.Serialize(serviceOrder),
+                Timestamp = DateTime.UtcNow,
+                SagaId = sagaId
+            };
+            await _context.OutboxMessages.AddAsync(message);
+            _logger.LogInformation($"added message at {DateTimeOffset.Now}");
+            await _context.SaveChangesAsync();
+            _logger.LogInformation($"SaveChangesAsync at {DateTimeOffset.Now}");
+            await EditSagaAsync(sagaId, nextSaga, compensate);
+        }
+
+        public async Task EditSagaAsync(long id, string nextstep, bool compensate)
+        {
+            var dbEntry = await _context.ServiceOrderSagaLog.FindAsync(id);
+            if (dbEntry != null)
+            {
+                //dbEntry.NextStep = null;
+                //dbEntry.AppointmentDatesConfirmed = true;
+
+                switch(dbEntry.NextStep)
+                {
+                    case "ConfirmAppointment":
+                        // created, appointment sent
+                        dbEntry.AppointmentDatesConfirmed = true;
+                        dbEntry.NextStep = nextstep;
+                        break;
+                    case "SpareCar":
+                        //created, appointment confirmed, spareCar reserving
+                        if (compensate)
+                        {
+                            dbEntry.AppointmentDatesConfirmed = false;
+                            dbEntry.NextStep = (nextstep == "null") ? null : nextstep;
+                            break;
+                        }
+                        dbEntry.AppointmentDatesConfirmed = true;
+                        dbEntry.NextStep = nextstep;
+                        break;
+                    case "AppointmentReset":
+                        dbEntry.AppointmentDatesConfirmed = false;
+                        dbEntry.NextStep = (nextstep == "null") ? null : nextstep;
+                        break;
+                    case "finish":
+                        if(compensate)
+                        {
+                            dbEntry.SpareCarReserved = false;
+                            dbEntry.NextStep = nextstep;
+                            break;
+                        }
+                        dbEntry.SpareCarReserved = true;
+                        dbEntry.NextStep = null;
+                        break;
+                    //case ""
+                    default:
+                        throw new Exception();
+                        //break;
+                }
+
+                _context.ServiceOrderSagaLog.Entry(dbEntry).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+            }
+        }
+
+
 
         public async void DeleteAsync(long id)
         {
@@ -86,26 +168,19 @@ namespace PCRepairService.DataAccess
             }
         }
 
-        public async Task EditAsync(long id)
+        public async Task EditAsync(long sagaid, string nextstep, ServiceOrder serviceOrder)
         {
-            var dbEntry = await _context.ServiceOrderSagaLog.FindAsync(id);
+            var dbEntry = await _context.ServiceOrders.FindAsync(serviceOrder.Id);
             if (dbEntry != null)
             {
-                dbEntry.NextStep = null;
-                dbEntry.AppointmentDatesConfirmed = true;
-                _context.ServiceOrderSagaLog.Entry(dbEntry).State = EntityState.Modified;
-                await _context.SaveChangesAsync();
-            }
-        }
-
-        public async Task EditSagaAsync(long id)
-        {
-            var dbEntry = await _context.ServiceOrderSagaLog.FindAsync(id);
-            if (dbEntry != null)
-            {
-                dbEntry.NextStep = null;
-                dbEntry.AppointmentDatesConfirmed = true;
-                _context.ServiceOrderSagaLog.Entry(dbEntry).State = EntityState.Modified;
+                dbEntry.ServiceOrderType = serviceOrder.ServiceOrderType;
+                dbEntry.Description = serviceOrder.Description;
+                dbEntry.Name = serviceOrder.Name;
+                dbEntry.Cost = serviceOrder.Cost;
+                dbEntry.IsCompleted = serviceOrder.IsCompleted;
+                dbEntry.HandoverAppointment = serviceOrder.HandoverAppointment;
+                dbEntry.ReturnDate = serviceOrder.ReturnDate;
+                _context.ServiceOrders.Entry(dbEntry).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
             }
         }

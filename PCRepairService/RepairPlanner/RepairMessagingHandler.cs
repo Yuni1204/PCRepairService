@@ -82,6 +82,48 @@ namespace RepairPlanner
                     _logger.LogInformation($"New ServiceOrder Received: {message}! at {DateTimeOffset.Now}");
                     SendMessage(response);
                 }
+                else if(messageType == "AppointmentSelected")
+                {
+                    var response = new Message
+                    {
+                        exchange = "ServiceOrderReply",
+                        //messageType = "AppointmentDatesFailed",
+                        messageType = "AppointmentDatesConfirmed",
+                        content = message,
+                        Timestamp = DateTime.UtcNow,
+                        SagaId = sagaId
+                    };
+                    _logger.LogInformation($"ServiceOrder Appointment {message}! at {DateTimeOffset.Now}");
+                    SendMessage(response);
+                }
+                else if (messageType == "CancelAppointment")
+                {
+                    var response = new Message
+                    {
+                        exchange = "ServiceOrderReply",
+                        messageType = "AppointmentDatesFailed",
+                        //messageType = "AppointmentDatesConfirmed",
+                        content = message,
+                        Timestamp = DateTime.UtcNow,
+                        SagaId = sagaId
+                    };
+                    _logger.LogInformation($"ServiceOrder Appointment {message}! at {DateTimeOffset.Now}");
+                    SendMessage(response);
+                }
+                else if(messageType == "ReserveSpareCar")
+                {
+                    var response = new Message
+                    {
+                        exchange = "ServiceOrderReply",
+                        //messageType = "SpareCarConfirmed",
+                        messageType = "SpareCarFailed",
+                        content = message,
+                        Timestamp = DateTime.UtcNow,
+                        SagaId = sagaId
+                    };
+                    _logger.LogInformation($"SpareCar Reserve {message}! at {DateTimeOffset.Now}");
+                    SendMessage(response);
+                }
                 else
                 {
                     //var messageType = Encoding.UTF8.GetString();
@@ -116,6 +158,7 @@ namespace RepairPlanner
             //                     body: body);
             await Task.CompletedTask;
         }
+
         public void SendMessage(Message messageobj)
         {
             _logger.LogInformation($"SendMessage()");

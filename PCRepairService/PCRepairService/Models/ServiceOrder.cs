@@ -2,7 +2,7 @@
 
 namespace PCRepairService.Models
 {
-    //All Inclusive Service Order -> simple datamodel with everything it needs
+    //Service Order -> simple datamodel with everything it needs
     public class ServiceOrder
     {
         public long Id { get; set; }

@@ -35,7 +35,6 @@ namespace OutboxWorker
 
         public async Task SendMessageAsync(Message messageobj)
         {
-
             if (messageobj.messageType == null) messageobj.messageType = "null";
             if (messageobj.SagaId == null) messageobj.SagaId = -1;
             _props.Headers = new Dictionary<string, object>
@@ -43,20 +42,16 @@ namespace OutboxWorker
                 { "MessageType", messageobj.messageType },
                 { "SagaId", messageobj.SagaId }
             };
-
-
-            string content = JsonSerializer.Serialize(messageobj.content);
-            //var message = GetMessage(jsonstring);
-            var body = Encoding.UTF8.GetBytes(content);
+            var body = (messageobj.content != null) ? Encoding.UTF8.GetBytes(messageobj.content) : Encoding.UTF8.GetBytes("null");
             _channel.BasicPublish(exchange: messageobj.exchange,
                                  routingKey: string.Empty,
                                  basicProperties: _props,
                                  body: body);
-            _logger.LogInformation($" [x] Sent {content}");
+            _logger.LogInformation($" [x] Tried to send Content: {messageobj.content}");
             await Task.CompletedTask;
         }
 
-        public void SendMessage(Message messageobj)
+        public void SendMessage(Message messageobj) //NOT IN USE
         {
             if (messageobj.messageType == null) messageobj.messageType = "null";
             _props.Headers = new Dictionary<string, object>
@@ -72,7 +67,8 @@ namespace OutboxWorker
                                  routingKey: string.Empty,
                                  basicProperties: _props,
                                  body: body);
-            _logger.LogInformation($" [x] Sent {content}");
+            _logger.LogInformation($" [xxxxx] Sent {content}");
+            _logger.LogInformation($"[***] {messageobj.messageType}");
         }
 
         public void HandleMessages(string exchange = "_")

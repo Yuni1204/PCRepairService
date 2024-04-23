@@ -40,7 +40,7 @@ namespace PCRepairService.DataAccess
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<ServiceOrder>().HasKey(e => e.Id);
-            modelBuilder.Entity<Message>().HasKey(e => e.Id);
+            //modelBuilder.Entity<Message>().HasKey(e => e.Id);
             modelBuilder.Entity<SagaServiceOrder>().HasKey(e => e.Id);
         }
 

@@ -7,9 +7,12 @@ namespace PCRepairService.Interfaces
         Task<ServiceOrder?> GetByIdAsync(long id);
         Task<IEnumerable<ServiceOrder>> GetAllAsync();
         Task AddAsync(ServiceOrder aiso);
-        Task AddWithMessageAsync(ServiceOrder aiso, string exchange, string messageType, bool isSaga = false);
+        Task AddWithMessageAsync(ServiceOrder aiso, string exchange, string messageType);
+        Task SagaAddWithMessageAsync(ServiceOrder ServiceOrder, string exchange, string messageType, string nextSaga, long sagaId);
+        Task SagaMessageAsync(ServiceOrder ServiceOrder, string exchange, string messageType, string nextSaga, long sagaId, bool compensate);
+        Task<long> CreateSagaAsync(String nextSaga);
+        Task EditSagaAsync(long id, string nextstep, bool compensate);
         void DeleteAsync(long id);
-        Task EditAsync(long id);
-        Task EditSagaAsync(long id);
+        Task EditAsync(long id, string nextstep, ServiceOrder serviceOrder);
     }
 }

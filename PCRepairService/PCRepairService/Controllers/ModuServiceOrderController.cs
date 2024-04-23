@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -90,21 +91,62 @@ namespace PCRepairService.Controllers
         [HttpPost]
         public async Task<ActionResult<ServiceOrder>> PostServiceOrder(ServiceOrder ServiceOrder)
         {
+            Thread.Sleep(10);
             _logger.LogInformation("PostServiceOrder Requested");
+            //imagine validation
+
+            await _DAServiceOrder.AddAsync(ServiceOrder);
+            //, "ServiceOrders", "ServiceOrderCreated"
+            //send message manually
+
+            return CreatedAtAction("GetServiceOrder", new { id = ServiceOrder.Id }, ServiceOrder);
+        }
+
+        [HttpPost("outbox")]
+        public async Task<ActionResult<ServiceOrder>> PostServiceOrderOutbox(ServiceOrder ServiceOrder)
+        {
+            Thread.Sleep(10);
+            _logger.LogInformation("PostServiceOrderOutbox Requested");
             //imagine validation
 
             await _DAServiceOrder.AddWithMessageAsync(ServiceOrder, "ServiceOrders", "ServiceOrderCreated");
 
             return CreatedAtAction("GetServiceOrder", new { id = ServiceOrder.Id }, ServiceOrder);
         }
-        
+
         [HttpPost("saga")]
         //[Route("saga")]
         [SwaggerOperation("CreateServiceOrder")]
         public async Task<ActionResult<ServiceOrder>> PostServiceOrderSaga(ServiceOrder ServiceOrder)
         {
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            Thread.Sleep(10);
             _logger.LogInformation("PostServiceOrderSaga Requested");
             //imagine validation
+
+            await _SagaHandler.StartServiceOrderSagaAsync(ServiceOrder);
+
+            //await _DAServiceOrder.AddWithMessageAsync(ServiceOrder, "ServiceOrders", "ServiceOrderCreated");
+            
+            stopwatch.Stop();
+            TimeSpan ts = stopwatch.Elapsed;
+            _logger.LogInformation($"[###SAGA] Stopwatch: {String.Format("{0:00}.{1:00}", ts.Seconds, ts.Milliseconds / 10)}");
+            return CreatedAtAction("GetServiceOrder", new { id = ServiceOrder.Id }, ServiceOrder);
+        }
+
+        [HttpPost("sagaV2")]
+        [SwaggerOperation("CreateServiceOrder")]
+        public async Task<ActionResult<ServiceOrder>> TrySaga(ServiceOrder ServiceOrder)
+        {
+            _logger.LogInformation("TrySaga Requested");
+            //imagine validation
+            //REST calls to get information of appointments + car replacement availability
+            //take first recommended appointment
+            //another check if still available?
+            //send messages to microservices for approval
+            //what can go wrong? 
+            //always in between REST and actually trying to book, might happen something
+            //
 
             await _SagaHandler.StartServiceOrderSagaAsync(ServiceOrder);
 
