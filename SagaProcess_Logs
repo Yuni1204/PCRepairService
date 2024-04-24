@@ -1,0 +1,283 @@
+[#SAGA 8] Started Saga at 23.04.2024 16:26:22 +02:00
+[#SAGA 8] added ServiceOrder at 23.04.2024 16:26:22 +02:00
+[#SAGA 8] SagaAddWithMessageAsync SaveChangesAsync at 23.04.2024 16:26:22 +02:00
+[#SAGA 8] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:22 +02:00
+[#SAGA 8] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:24 +02:00
+[#SAGA 8] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:25 +02:00
+[#SAGA 8] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:29 +02:00
+[#SAGA 8] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:29 +02:00
+[#SAGA 8] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:34 +02:00
+[#SAGA 8] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:34 +02:00
+
+[#SAGA 9] Started Saga at 23.04.2024 16:26:22 +02:00
+[#SAGA 9] added ServiceOrder at 23.04.2024 16:26:22 +02:00
+[#SAGA 9] SagaAddWithMessageAsync SaveChangesAsync at 23.04.2024 16:26:22 +02:00
+[#SAGA 9] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:22 +02:00
+[#SAGA 9] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:24 +02:00
+[#SAGA 9] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:25 +02:00
+[#SAGA 9] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:29 +02:00
+[#SAGA 9] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:29 +02:00
+[#SAGA 9] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:34 +02:00
+[#SAGA 9] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:34 +02:00
+
+[#SAGA 10] Started Saga at                                      23.04.2024 16:26:23 +02:00
+[#SAGA 10] added ServiceOrder at                                23.04.2024 16:26:23 +02:00
+[#SAGA 10] SagaAddWithMessageAsync SaveChangesAsync at          23.04.2024 16:26:23 +02:00
+[#SAGA 10] EditSagaAsync SaveChangesAsync at                    23.04.2024 16:26:23 +02:00
+[#SAGA 10] SagaMessageAsync SaveChangesAsync at                 23.04.2024 16:26:25 +02:00
+[#SAGA 10] EditSagaAsync SaveChangesAsync at                    23.04.2024 16:26:25 +02:00
+[#SAGA 10] SagaMessageAsync SaveChangesAsync at                 23.04.2024 16:26:29 +02:00
+[#SAGA 10] EditSagaAsync SaveChangesAsync at                    23.04.2024 16:26:29 +02:00
+[#SAGA 10] SagaMessageAsync SaveChangesAsync at                 23.04.2024 16:26:34 +02:00
+[#SAGA 10] EditSagaAsync SaveChangesAsync at                    23.04.2024 16:26:35 +02:00
+
+
+
+      [#SAGA] POST-Request: 00.64
+
+      
+
+      [#SAGA] POST-Request: 00.06
+
+      
+
+      [#SAGA] POST-Request: 00.03
+
+      [#SAGA 11] Started Saga at 23.04.2024 16:26:23 +02:00
+
+      [#SAGA 11] added ServiceOrder at 23.04.2024 16:26:23 +02:00
+
+      [#SAGA 11] SagaAddWithMessageAsync SaveChangesAsync at 23.04.2024 16:26:23 +02:00
+
+      [#SAGA 11] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:23 +02:00
+
+      [#SAGA] POST-Request: 00.03
+
+      [#SAGA 12] Started Saga at 23.04.2024 16:26:24 +02:00
+
+      [#SAGA 12] added ServiceOrder at 23.04.2024 16:26:24 +02:00
+
+      [#SAGA 12] SagaAddWithMessageAsync SaveChangesAsync at 23.04.2024 16:26:24 +02:00
+
+      [#SAGA 12] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:24 +02:00
+
+      [#SAGA] POST-Request: 00.03
+
+
+      
+
+      
+
+      [#SAGA 11] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:25 +02:00
+
+      CaseAppointmentSuccess for SagaId 9 ended at 23.04.2024 16:26:25 +02:00
+
+      CaseAppointmentSuccess for SagaId 8 ended at 23.04.2024 16:26:25 +02:00
+
+      CaseAppointmentSuccess for SagaId 10 ended at 23.04.2024 16:26:25 +02:00
+
+      [#SAGA 11] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:25 +02:00
+
+      CaseAppointmentSuccess for SagaId 11 ended at 23.04.2024 16:26:25 +02:00
+
+      [#SAGA 12] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:25 +02:00
+
+      [#SAGA 12] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:25 +02:00
+
+      CaseAppointmentSuccess for SagaId 12 ended at 23.04.2024 16:26:25 +02:00
+
+      [#SAGA 13] Started Saga at 23.04.2024 16:26:25 +02:00
+
+      [#SAGA 13] added ServiceOrder at 23.04.2024 16:26:25 +02:00
+
+      [#SAGA 13] SagaAddWithMessageAsync SaveChangesAsync at 23.04.2024 16:26:25 +02:00
+
+      [#SAGA 13] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:25 +02:00
+
+      [#SAGA] POST-Request: 00.03
+
+      [#SAGA 14] Started Saga at 23.04.2024 16:26:26 +02:00
+
+      [#SAGA 14] added ServiceOrder at 23.04.2024 16:26:26 +02:00
+
+      [#SAGA 14] SagaAddWithMessageAsync SaveChangesAsync at 23.04.2024 16:26:26 +02:00
+
+      [#SAGA 14] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:26 +02:00
+
+      [#SAGA] POST-Request: 00.02
+
+      [#SAGA 15] Started Saga at 23.04.2024 16:26:26 +02:00
+
+      [#SAGA 15] added ServiceOrder at 23.04.2024 16:26:26 +02:00
+
+      [#SAGA 15] SagaAddWithMessageAsync SaveChangesAsync at 23.04.2024 16:26:26 +02:00
+
+      [#SAGA 15] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:26 +02:00
+
+      [#SAGA] POST-Request: 00.02
+
+      [#SAGA 16] Started Saga at 23.04.2024 16:26:28 +02:00
+
+      [#SAGA 16] added ServiceOrder at 23.04.2024 16:26:28 +02:00
+
+      [#SAGA 16] SagaAddWithMessageAsync SaveChangesAsync at 23.04.2024 16:26:28 +02:00
+
+      [#SAGA 16] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:28 +02:00
+
+      [#SAGA] POST-Request: 00.02
+
+      [#SAGA 17] Started Saga at 23.04.2024 16:26:28 +02:00
+
+      [#SAGA 17] added ServiceOrder at 23.04.2024 16:26:28 +02:00
+
+      [#SAGA 17] SagaAddWithMessageAsync SaveChangesAsync at 23.04.2024 16:26:29 +02:00
+
+      [#SAGA 17] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:29 +02:00
+
+      [#SAGA] POST-Request: 00.02
+
+
+      
+
+      
+
+      CaseSpareCarFail for SagaId 8 ended at 23.04.2024 16:26:29 +02:00
+
+      
+      [#SAGA 11] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:29 +02:00
+
+      CaseSpareCarFail for SagaId 9 ended at 23.04.2024 16:26:29 +02:00
+
+      [#SAGA 12] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:29 +02:00
+
+      [#SAGA 11] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:29 +02:00
+
+      CaseSpareCarFail for SagaId 11 ended at 23.04.2024 16:26:29 +02:00
+
+      
+
+      CaseSpareCarFail for SagaId 10 ended at 23.04.2024 16:26:29 +02:00
+
+      [#SAGA 13] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:29 +02:00
+
+      [#SAGA 12] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:29 +02:00
+
+      CaseSpareCarFail for SagaId 12 ended at 23.04.2024 16:26:29 +02:00
+
+      [#SAGA 14] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:29 +02:00
+
+      [#SAGA 13] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:29 +02:00
+
+      CaseAppointmentSuccess for SagaId 13 ended at 23.04.2024 16:26:29 +02:00
+
+      [#SAGA 15] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:29 +02:00
+
+      [#SAGA 14] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:29 +02:00
+
+      CaseAppointmentSuccess for SagaId 14 ended at 23.04.2024 16:26:29 +02:00
+
+      [#SAGA 16] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:29 +02:00
+
+      [#SAGA 15] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:29 +02:00
+
+      CaseAppointmentSuccess for SagaId 15 ended at 23.04.2024 16:26:29 +02:00
+
+      [#SAGA 17] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:29 +02:00
+
+      [#SAGA 16] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:29 +02:00
+
+      CaseAppointmentSuccess for SagaId 16 ended at 23.04.2024 16:26:29 +02:00
+
+      [#SAGA 17] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:29 +02:00
+
+      CaseAppointmentSuccess for SagaId 17 ended at 23.04.2024 16:26:29 +02:00
+
+      
+
+      
+
+      
+
+      [#SAGA 11] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:34 +02:00
+
+      
+
+      CaseAppointmentFail for SagaId 9 ended at 23.04.2024 16:26:34 +02:00
+
+      
+
+      CaseAppointmentFail for SagaId 8 ended at 23.04.2024 16:26:34 +02:00
+
+      [#SAGA 11] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:34 +02:00
+
+      CaseAppointmentFail for SagaId 11 ended at 23.04.2024 16:26:34 +02:00
+
+      [#SAGA 12] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:34 +02:00
+
+      [#SAGA 13] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:34 +02:00
+
+      [#SAGA 12] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:35 +02:00
+
+      CaseAppointmentFail for SagaId 12 ended at 23.04.2024 16:26:35 +02:00
+
+      
+
+      CaseAppointmentFail for SagaId 10 ended at 23.04.2024 16:26:35 +02:00
+
+      [#SAGA 14] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:35 +02:00
+
+      [#SAGA 13] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:35 +02:00
+
+      CaseSpareCarFail for SagaId 13 ended at 23.04.2024 16:26:35 +02:00
+
+      [#SAGA 15] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:35 +02:00
+
+      [#SAGA 14] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:35 +02:00
+
+      CaseSpareCarFail for SagaId 14 ended at 23.04.2024 16:26:35 +02:00
+
+      [#SAGA 16] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:35 +02:00
+
+      [#SAGA 15] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:35 +02:00
+
+      CaseSpareCarFail for SagaId 15 ended at 23.04.2024 16:26:35 +02:00
+
+      [#SAGA 17] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:35 +02:00
+
+      [#SAGA 16] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:35 +02:00
+
+      CaseSpareCarFail for SagaId 16 ended at 23.04.2024 16:26:35 +02:00
+
+      [#SAGA 17] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:35 +02:00
+
+      CaseSpareCarFail for SagaId 17 ended at 23.04.2024 16:26:35 +02:00
+
+      [#SAGA 13] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:39 +02:00
+
+      [#SAGA 14] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:39 +02:00
+
+      [#SAGA 13] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:39 +02:00
+
+      CaseAppointmentFail for SagaId 13 ended at 23.04.2024 16:26:39 +02:00
+
+      [#SAGA 15] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:39 +02:00
+
+      [#SAGA 14] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:40 +02:00
+
+      CaseAppointmentFail for SagaId 14 ended at 23.04.2024 16:26:40 +02:00
+
+      [#SAGA 16] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:40 +02:00
+
+      [#SAGA 15] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:40 +02:00
+
+      CaseAppointmentFail for SagaId 15 ended at 23.04.2024 16:26:40 +02:00
+
+      [#SAGA 17] SagaMessageAsync SaveChangesAsync at 23.04.2024 16:26:40 +02:00
+
+      [#SAGA 16] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:40 +02:00
+
+      CaseAppointmentFail for SagaId 16 ended at 23.04.2024 16:26:40 +02:00
+
+      [#SAGA 17] EditSagaAsync SaveChangesAsync at 23.04.2024 16:26:40 +02:00
+
+      CaseAppointmentFail for SagaId 17 ended at 23.04.2024 16:26:40 +02:00

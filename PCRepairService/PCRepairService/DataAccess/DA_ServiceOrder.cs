@@ -5,7 +5,6 @@ using PCRepairService.Models;
 using Microsoft.CodeAnalysis.Text;
 using System.Text.Json;
 using MessengerLibrary;
-using PCRepairService.Migrations;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace PCRepairService.DataAccess
@@ -26,14 +25,14 @@ namespace PCRepairService.DataAccess
             serviceOrder.Description = "noPatterns " + serviceOrder.Description;
             await _context.ServiceOrders.AddAsync(serviceOrder);
             await _context.SaveChangesAsync();
-            _logger.LogInformation($"added ServiceOrder: {serviceOrder} at {DateTimeOffset.Now}");
+            _logger.LogInformation($"added ServiceOrder: {serviceOrder} at {DateTimeOffset.Now.AddMilliseconds}");
         }
 
         public async Task AddWithMessageAsync(ServiceOrder serviceOrder, string exchange, string messageType)
         {
             serviceOrder.Description = "OnlyOutboxMessaging " + serviceOrder.Description;
             await _context.ServiceOrders.AddAsync(serviceOrder);
-            _logger.LogInformation($"added ServiceOrder: {serviceOrder} at {DateTimeOffset.Now}");
+            _logger.LogInformation($"added ServiceOrder: {serviceOrder} at {DateTimeOffset.Now.AddMilliseconds}");
             await _context.SaveChangesAsync();
             var message = new Message
             {
@@ -44,9 +43,9 @@ namespace PCRepairService.DataAccess
                 Timestamp = DateTime.UtcNow
             };
             await _context.OutboxMessages.AddAsync(message);
-            _logger.LogInformation($"added message: {message} at {DateTimeOffset.Now}");
+            _logger.LogInformation($"added message: {message} at {DateTimeOffset.Now.AddMilliseconds}");
             await _context.SaveChangesAsync();
-            _logger.LogInformation($"SaveChangesAsync at {DateTimeOffset.Now}");
+            _logger.LogInformation($"SaveChangesAsync at {DateTimeOffset.Now.AddMilliseconds}");
         }
 
         public async Task<long> CreateSagaAsync(String nextSaga)
@@ -58,7 +57,7 @@ namespace PCRepairService.DataAccess
             };
             await _context.ServiceOrderSagaLog.AddAsync(sagalog);
             await _context.SaveChangesAsync();
-            _logger.LogInformation($"Started Saga: {sagalog.Id} at {DateTimeOffset.Now}");
+            _logger.LogInformation($"[#SAGA {sagalog.Id}] Started Saga at {DateTimeOffset.Now.AddMilliseconds}");
             return sagalog.Id;
         }
 
@@ -67,7 +66,7 @@ namespace PCRepairService.DataAccess
         {
             serviceOrder.Description = "SagaPatternOutbox " + serviceOrder.Description;
             await _context.ServiceOrders.AddAsync(serviceOrder);
-            _logger.LogInformation($"added ServiceOrder at {DateTimeOffset.Now}");
+            _logger.LogInformation($"[#SAGA {sagaId}] added ServiceOrder at {DateTimeOffset.Now.AddMilliseconds}");
             await _context.SaveChangesAsync();
             var message = new Message
             {
@@ -79,9 +78,9 @@ namespace PCRepairService.DataAccess
                 SagaId = sagaId
             };            
             await _context.OutboxMessages.AddAsync(message);
-            _logger.LogInformation($"added message at {DateTimeOffset.Now}");
+            //_logger.LogInformation($"added message at {DateTimeOffset.Now.AddMilliseconds}");
             await _context.SaveChangesAsync();
-            _logger.LogInformation($"SaveChangesAsync at {DateTimeOffset.Now}");
+            _logger.LogInformation($"[#SAGA {sagaId}] SagaAddWithMessageAsync SaveChangesAsync at {DateTimeOffset.Now.AddMilliseconds}");
             await EditSagaAsync(sagaId, nextSaga, false);
         }
 
@@ -98,9 +97,9 @@ namespace PCRepairService.DataAccess
                 SagaId = sagaId
             };
             await _context.OutboxMessages.AddAsync(message);
-            _logger.LogInformation($"added message at {DateTimeOffset.Now}");
+            //_logger.LogInformation($"added message at {DateTimeOffset.Now.AddMilliseconds}");
             await _context.SaveChangesAsync();
-            _logger.LogInformation($"SaveChangesAsync at {DateTimeOffset.Now}");
+            _logger.LogInformation($"[#SAGA {sagaId}] SagaMessageAsync SaveChangesAsync at {DateTimeOffset.Now.AddMilliseconds}");
             await EditSagaAsync(sagaId, nextSaga, compensate);
         }
 
@@ -152,6 +151,7 @@ namespace PCRepairService.DataAccess
 
                 _context.ServiceOrderSagaLog.Entry(dbEntry).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
+                _logger.LogInformation($"[#SAGA {id}] EditSagaAsync SaveChangesAsync at {DateTimeOffset.Now.AddMilliseconds}");
             }
         }
 
@@ -164,7 +164,7 @@ namespace PCRepairService.DataAccess
             {
                 _context.ServiceOrders.Remove(ServiceOrder);
                 await _context.SaveChangesAsync();
-                _logger.LogInformation($"deleted ServiceOrder: {ServiceOrder} at {DateTimeOffset.Now}");
+                _logger.LogInformation($"deleted ServiceOrder: {ServiceOrder} at {DateTimeOffset.Now.AddMilliseconds}");
             }
         }
 

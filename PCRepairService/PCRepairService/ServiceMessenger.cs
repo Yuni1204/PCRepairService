@@ -49,14 +49,14 @@ namespace PCRepairService
 
         public void HandleMessages(string exchange = "ServiceOrderReply")
         {
-            _logger.LogInformation($"HandleMessages started at {DateTimeOffset.Now}");
+            _logger.LogInformation($"HandleMessages started at {DateTimeOffset.Now.AddMilliseconds}");
             _channel.QueueBind(queue: queueName,
                               exchange: exchange,
                               routingKey: string.Empty);
 
             _consumer.Received += async (model, ea) =>
             {
-                _logger.LogInformation("[*****] consumer.Received");
+                //_logger.LogInformation("[*****] consumer.Received");
                 byte[]? headerMessType;
                 long sagaId;
                 string messageType;
@@ -157,7 +157,7 @@ namespace PCRepairService
                         var serviceOrder = JsonSerializer.Deserialize<ServiceOrder>(content);
                         if (serviceOrder == null) throw new Exception(content);
                         await sagaHandler.ReserveSpareCar(serviceOrder, sagaId);
-                        return $"CaseAppointmentSuccess for SagaId {sagaId} ended at {DateTimeOffset.Now} ";
+                        return $"CaseAppointmentSuccess for SagaId {sagaId} ended at {DateTimeOffset.Now.AddMilliseconds} ";
                     }
                     else
                     {
@@ -183,7 +183,7 @@ namespace PCRepairService
                         var serviceOrder = JsonSerializer.Deserialize<ServiceOrder>(messageString);
                         if (serviceOrder == null) throw new Exception(messageString);
                         await sagaHandler.CompensateConfirmAppointmentFail(serviceOrder, sagaId);
-                        return $"CaseAppointmentFail for SagaId {sagaId} ended at {DateTimeOffset.Now} ";
+                        return $"CaseAppointmentFail for SagaId {sagaId} ended at {DateTimeOffset.Now.AddMilliseconds} ";
                     }
                     else
                     {
@@ -209,7 +209,7 @@ namespace PCRepairService
                         var serviceOrder = JsonSerializer.Deserialize<ServiceOrder>(messageString);
                         if (serviceOrder == null) throw new Exception(messageString);
                         await sagaHandler.EndServiceOrderSagaAsync(serviceOrder, sagaId);
-                        return $"CaseSpareCarSuccess for SagaId {sagaId} ended at {DateTimeOffset.Now} ";
+                        return $"CaseSpareCarSuccess for SagaId {sagaId} ended at {DateTimeOffset.Now.AddMilliseconds} ";
                     }
                     else
                     {
@@ -235,7 +235,7 @@ namespace PCRepairService
                         var serviceOrder = JsonSerializer.Deserialize<ServiceOrder>(messageString);
                         if (serviceOrder == null) throw new Exception(messageString);
                         await sagaHandler.CompensateReserveSpareCarFail(serviceOrder, sagaId);
-                        return $"CaseSpareCarFail for SagaId {sagaId} ended at {DateTimeOffset.Now} ";
+                        return $"CaseSpareCarFail for SagaId {sagaId} ended at {DateTimeOffset.Now.AddMilliseconds} ";
                     }
                     else
                     {

@@ -21,11 +21,11 @@ namespace OutboxWorker
         {
             if (_logger.IsEnabled(LogLevel.Information))
             {
-                _logger.LogInformation("Worker started at: {time}", DateTimeOffset.Now);
+                _logger.LogInformation($"Worker started at: {DateTimeOffset.Now.AddMilliseconds}");
             }
             while (!stoppingToken.IsCancellationRequested)
             {
-                _logger.LogInformation("Worker handling at: {time}", DateTimeOffset.Now);
+                _logger.LogInformation($"Worker handling at: {DateTimeOffset.Now.AddMilliseconds}");
                 await HandleOutboxAsync();
                 await Task.Delay(5000, stoppingToken);
             }
@@ -44,7 +44,7 @@ namespace OutboxWorker
                         //delete from table
                         dbContext.OutboxMessages.Remove(message);
                         await dbContext.SaveChangesAsync();
-                        _logger.LogInformation($"Sent and removed {message} at {DateTime.UtcNow.ToLongTimeString()}");
+                        _logger.LogInformation($"[SagaId {message.SagaId}] Sent and removed at {DateTime.UtcNow.ToLongTimeString()}");
                     }
                 }
                 else

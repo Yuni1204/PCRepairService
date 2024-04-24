@@ -47,7 +47,7 @@ namespace OutboxWorker
                                  routingKey: string.Empty,
                                  basicProperties: _props,
                                  body: body);
-            _logger.LogInformation($" [x] Tried to send Content: {messageobj.content}");
+            _logger.LogInformation($" [SagaId {messageobj.SagaId}] Tried to send Content: {messageobj.content}");
             await Task.CompletedTask;
         }
 

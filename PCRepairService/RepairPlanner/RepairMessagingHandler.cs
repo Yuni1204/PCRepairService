@@ -79,7 +79,7 @@ namespace RepairPlanner
                         Timestamp = DateTime.UtcNow,
                         SagaId = sagaId
                     };
-                    _logger.LogInformation($"New ServiceOrder Received: {message}! at {DateTimeOffset.Now}");
+                    _logger.LogInformation($"[SagaId {sagaId}] New ServiceOrder Received: {message}! at {DateTimeOffset.Now.AddMilliseconds}");
                     SendMessage(response);
                 }
                 else if(messageType == "AppointmentSelected")
@@ -93,7 +93,7 @@ namespace RepairPlanner
                         Timestamp = DateTime.UtcNow,
                         SagaId = sagaId
                     };
-                    _logger.LogInformation($"ServiceOrder Appointment {message}! at {DateTimeOffset.Now}");
+                    _logger.LogInformation($"[SagaId {sagaId}] ServiceOrder Appointment at {DateTimeOffset.Now.AddMilliseconds}");
                     SendMessage(response);
                 }
                 else if (messageType == "CancelAppointment")
@@ -107,7 +107,7 @@ namespace RepairPlanner
                         Timestamp = DateTime.UtcNow,
                         SagaId = sagaId
                     };
-                    _logger.LogInformation($"ServiceOrder Appointment {message}! at {DateTimeOffset.Now}");
+                    _logger.LogInformation($"[SagaId {sagaId}] ServiceOrder Appointment (FAIL) at {DateTimeOffset.Now.AddMilliseconds}");
                     SendMessage(response);
                 }
                 else if(messageType == "ReserveSpareCar")
@@ -121,14 +121,14 @@ namespace RepairPlanner
                         Timestamp = DateTime.UtcNow,
                         SagaId = sagaId
                     };
-                    _logger.LogInformation($"SpareCar Reserve {message}! at {DateTimeOffset.Now}");
+                    _logger.LogInformation($"[SagaId {sagaId}] SpareCar Reserve at {DateTimeOffset.Now.AddMilliseconds}");
                     SendMessage(response);
                 }
                 else
                 {
                     //var messageType = Encoding.UTF8.GetString();
                     //header.TryGetValue("MessageType");
-                    _logger.LogInformation($" [x] RepairMessagingHandler_HandleMessages_else");
+                    _logger.LogInformation($"[SagaId {sagaId}] ({messageType}) RepairMessagingHandler_HandleMessages_else");
                 }
             };
             _channel.BasicConsume(queue: queueName,
@@ -182,7 +182,7 @@ namespace RepairPlanner
                                  routingKey: string.Empty,
                                  basicProperties: _props,
                                  body: body);
-            _logger.LogInformation($"published Message at {DateTimeOffset.Now} ");
+            _logger.LogInformation($"[SagaId {messageobj.SagaId}] published Message at {DateTimeOffset.Now.AddMilliseconds} ");
         }
 
     }

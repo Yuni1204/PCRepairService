@@ -121,7 +121,7 @@ namespace PCRepairService.Controllers
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
             Thread.Sleep(10);
-            _logger.LogInformation("PostServiceOrderSaga Requested");
+            //_logger.LogInformation("PostServiceOrderSaga Requested");
             //imagine validation
 
             await _SagaHandler.StartServiceOrderSagaAsync(ServiceOrder);
@@ -130,7 +130,7 @@ namespace PCRepairService.Controllers
             
             stopwatch.Stop();
             TimeSpan ts = stopwatch.Elapsed;
-            _logger.LogInformation($"[###SAGA] Stopwatch: {String.Format("{0:00}.{1:00}", ts.Seconds, ts.Milliseconds / 10)}");
+            _logger.LogInformation($"[#SAGA] POST-Request: {String.Format("{0:00}.{1:00}", ts.Seconds, ts.Milliseconds / 10)}");
             return CreatedAtAction("GetServiceOrder", new { id = ServiceOrder.Id }, ServiceOrder);
         }
 
