@@ -21,13 +21,13 @@ namespace OutboxWorker
         {
             if (_logger.IsEnabled(LogLevel.Information))
             {
-                _logger.LogInformation($"Worker started at: {DateTimeOffset.Now.AddMilliseconds}");
+                _logger.LogInformation($"Worker started at: {DateTimeOffset.Now.ToString("hh.mm.ss.ffffff")}");
             }
             while (!stoppingToken.IsCancellationRequested)
             {
-                _logger.LogInformation($"Worker handling at: {DateTimeOffset.Now.AddMilliseconds}");
+                //_logger.LogInformation($"Worker handling at: {DateTimeOffset.Now.ToString("hh.mm.ss.ffffff")}");
                 await HandleOutboxAsync();
-                await Task.Delay(5000, stoppingToken);
+                await Task.Delay(500, stoppingToken);
             }
         }
 
@@ -49,7 +49,7 @@ namespace OutboxWorker
                 }
                 else
                 {
-                    _logger.LogInformation($"No Messages in Outbox rn, sleeping...");
+                    //_logger.LogInformation($"No Messages in Outbox rn, sleeping...");
                 }
                 
             }

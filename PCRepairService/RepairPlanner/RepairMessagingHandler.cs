@@ -79,7 +79,7 @@ namespace RepairPlanner
                         Timestamp = DateTime.UtcNow,
                         SagaId = sagaId
                     };
-                    _logger.LogInformation($"[SagaId {sagaId}] New ServiceOrder Received: {message}! at {DateTimeOffset.Now.AddMilliseconds}");
+                    _logger.LogInformation($"[SagaId {sagaId}] New ServiceOrder Received: {message}! at {DateTimeOffset.Now.ToString("hh.mm.ss.ffffff")}");
                     SendMessage(response);
                 }
                 else if(messageType == "AppointmentSelected")
@@ -93,7 +93,7 @@ namespace RepairPlanner
                         Timestamp = DateTime.UtcNow,
                         SagaId = sagaId
                     };
-                    _logger.LogInformation($"[SagaId {sagaId}] ServiceOrder Appointment at {DateTimeOffset.Now.AddMilliseconds}");
+                    _logger.LogInformation($"[SagaId {sagaId}] ServiceOrder Appointment at {DateTimeOffset.Now.ToString("hh.mm.ss.ffffff")}");
                     SendMessage(response);
                 }
                 else if (messageType == "CancelAppointment")
@@ -107,7 +107,7 @@ namespace RepairPlanner
                         Timestamp = DateTime.UtcNow,
                         SagaId = sagaId
                     };
-                    _logger.LogInformation($"[SagaId {sagaId}] ServiceOrder Appointment (FAIL) at {DateTimeOffset.Now.AddMilliseconds}");
+                    _logger.LogInformation($"[SagaId {sagaId}] ServiceOrder Appointment (FAIL) at {DateTimeOffset.Now.ToString("hh.mm.ss.ffffff")}");
                     SendMessage(response);
                 }
                 else if(messageType == "ReserveSpareCar")
@@ -121,7 +121,7 @@ namespace RepairPlanner
                         Timestamp = DateTime.UtcNow,
                         SagaId = sagaId
                     };
-                    _logger.LogInformation($"[SagaId {sagaId}] SpareCar Reserve at {DateTimeOffset.Now.AddMilliseconds}");
+                    _logger.LogInformation($"[SagaId {sagaId}] SpareCar Reserve at {DateTimeOffset.Now.ToString("hh.mm.ss.ffffff")}");
                     SendMessage(response);
                 }
                 else
@@ -182,7 +182,7 @@ namespace RepairPlanner
                                  routingKey: string.Empty,
                                  basicProperties: _props,
                                  body: body);
-            _logger.LogInformation($"[SagaId {messageobj.SagaId}] published Message at {DateTimeOffset.Now.AddMilliseconds} ");
+            _logger.LogInformation($"[SagaId {messageobj.SagaId}] published Message at {DateTimeOffset.Now.ToString("hh.mm.ss.ffffff")} ");
         }
 
     }
