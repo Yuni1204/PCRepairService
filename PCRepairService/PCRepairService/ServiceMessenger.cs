@@ -23,8 +23,9 @@ namespace PCRepairService
         protected readonly string queueName;
         private IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger _logger;
+        public IRepairTimer _repairTimer;
 
-        public ServiceMessenger(ILogger<ServiceMessenger> logger, IServiceScopeFactory serviceScopeFactory)
+        public ServiceMessenger(ILogger<ServiceMessenger> logger, IServiceScopeFactory serviceScopeFactory, IRepairTimer repairtimer)
         {
             _factory = new ConnectionFactory { HostName = "localhost" };
             _connection = _factory.CreateConnection();
@@ -38,9 +39,7 @@ namespace PCRepairService
             _serviceScopeFactory = serviceScopeFactory;
             //maybe factory für sagaHandler weil messenger ist singleton und sagahandler sollte scoped sein
             _logger = logger;
-
-
-            
+            _repairTimer = repairtimer;
         }
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -57,23 +56,33 @@ namespace PCRepairService
 
             _consumer.Received += async (model, ea) =>
             {
+                Stopwatch stopwatch = Stopwatch.StartNew();
                 //_logger.LogInformation("[*****] consumer.Received");
                 byte[]? headerMessType;
                 long sagaId;
                 string messageType;
+                var messagebody = ea.Body.ToArray();
+                var messageString = Encoding.UTF8.GetString(messagebody);
                 if (ea.BasicProperties.IsHeadersPresent())
                 {
                     headerMessType = (ea.BasicProperties.Headers.ContainsKey("MessageType")) ? (byte[])ea.BasicProperties.Headers["MessageType"] : Encoding.UTF8.GetBytes("null");
                     messageType = Encoding.UTF8.GetString(headerMessType);
                     sagaId = (ea.BasicProperties.Headers.ContainsKey("SagaId")) ? (long)ea.BasicProperties.Headers["SagaId"] : -1;
-                    var messagebody = ea.Body.ToArray();
-                    var messageString = Encoding.UTF8.GetString(messagebody);
                     await ProcessMessageByHeader(messageType, sagaId, messageString);
                 }
                 else
                 { //is not allowed to happen, every message should have a type
                     throw new Exception();
                 }
+                stopwatch.Stop();
+                TimeSpan ts = stopwatch.Elapsed;
+                var target = JsonSerializer.Deserialize<ServiceOrder>(messageString);
+                var newstoptime = new RepairStopTime
+                {
+                    ServiceOrderId = target.Id,
+                    StopTime = ts.Milliseconds
+                };
+                _repairTimer.AddStoppedTime(newstoptime);
             };
             _channel.BasicConsume(queue: queueName,
                                 autoAck: true,
@@ -184,6 +193,7 @@ namespace PCRepairService
                         var serviceOrder = JsonSerializer.Deserialize<ServiceOrder>(messageString);
                         if (serviceOrder == null) throw new Exception(messageString);
                         await sagaHandler.CompensateConfirmAppointmentFail(serviceOrder, sagaId);
+                        await _repairTimer.SaveStoppedTime(serviceOrder.Id);
                         return $"CaseAppointmentFail for SagaId {sagaId} ended at {DateTimeOffset.Now.ToString("hh.mm.ss.ffffff")} ";
                     }
                     else

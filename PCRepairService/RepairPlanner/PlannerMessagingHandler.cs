@@ -1,13 +1,17 @@
 ﻿using MessengerLibrary;
 using Microsoft.AspNetCore.Connections;
+using Microsoft.EntityFrameworkCore;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RepairPlanner.DataAccess;
+using RepairPlanner.Models;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Json;
 
 namespace RepairPlanner
 {
-    public class RepairMessagingHandler : BackgroundService, IMessenger
+    public class PlannerMessagingHandler : BackgroundService, IMessenger
     {
         public ConnectionFactory _factory;
         public IConnection _connection;
@@ -16,16 +20,21 @@ namespace RepairPlanner
         public EventingBasicConsumer _consumer;
         private ILogger _logger;
 
-        public RepairMessagingHandler(ILogger<RepairMessagingHandler> logger)
+        private IServiceScopeFactory _serviceScopeFactory;
+        //private readonly IDA_Planner _DAplanner;
+
+        public PlannerMessagingHandler(ILogger<PlannerMessagingHandler> logger/*, IDA_Planner planner*/, IServiceScopeFactory serviceScopeFactory)
         {
             _factory = new ConnectionFactory { HostName = "localhost" };
             _connection = _factory.CreateConnection();
             _channel = _connection.CreateModel();
             _props = _channel.CreateBasicProperties();
             _consumer = new EventingBasicConsumer(_channel);
-            LoggerFactory factory = new LoggerFactory();
+            //LoggerFactory factory = new LoggerFactory();
             _logger = logger;
+            _serviceScopeFactory = serviceScopeFactory;
 
+            //_DAplanner = planner;
         }
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -60,7 +69,7 @@ namespace RepairPlanner
                     throw new Exception();
                 }
                 var body = ea.Body.ToArray();
-                var message = Encoding.UTF8.GetString(body);
+                var message = Encoding.UTF8.GetString(body); //serviceOrder as json
 
                 if (messageType == "null")
                 {
@@ -68,6 +77,7 @@ namespace RepairPlanner
                 }
                 if(messageType == "ServiceOrderCreated")
                 {
+
                     //Handle the message content (for example create service order with all necessary data) imaginary for now
                     //_logger.LogInformation("");
                     //after completion send back response
@@ -84,6 +94,8 @@ namespace RepairPlanner
                 }
                 else if(messageType == "AppointmentSelected")
                 {
+                    saveNewServiceOrder(message);
+
                     var response = new Message
                     {
                         exchange = "ServiceOrderReply",
@@ -98,12 +110,13 @@ namespace RepairPlanner
                 }
                 else if (messageType == "CancelAppointment")
                 {
+                    var content = RemoveAppointmentServiceOrder(message);
                     var response = new Message
                     {
                         exchange = "ServiceOrderReply",
                         messageType = "AppointmentDatesFailed",
                         //messageType = "AppointmentDatesConfirmed",
-                        content = message,
+                        content = content,
                         Timestamp = DateTime.UtcNow,
                         SagaId = sagaId
                     };
@@ -112,6 +125,7 @@ namespace RepairPlanner
                 }
                 else if(messageType == "ReserveSpareCar")
                 {
+                    
                     var response = new Message
                     {
                         exchange = "ServiceOrderReply",
@@ -121,6 +135,10 @@ namespace RepairPlanner
                         Timestamp = DateTime.UtcNow,
                         SagaId = sagaId
                     };
+                    if (response.messageType == "SpareCarConfirmed")
+                    {
+                        response.content = AddSpareCarServiceOrder(message);
+                    }
                     _logger.LogInformation($"[SagaId {sagaId}] SpareCar Reserve at {DateTimeOffset.Now.ToString("hh.mm.ss.ffffff")}");
                     SendMessage(response);
                 }
@@ -183,6 +201,72 @@ namespace RepairPlanner
                                  basicProperties: _props,
                                  body: body);
             _logger.LogInformation($"[SagaId {messageobj.SagaId}] published Message at {DateTimeOffset.Now.ToString("hh.mm.ss.ffffff")} ");
+        }
+
+
+        public void saveNewServiceOrder(string content)
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var daPlanner = scope.ServiceProvider.GetService<IDA_Planner>();
+                if (daPlanner != null)
+                {
+                    var serviceOrder = JsonSerializer.Deserialize<PServiceOrder>(content);
+                    if (serviceOrder == null) throw new Exception(content);
+
+                    var dbEntry = daPlanner.GetServiceOrder(serviceOrder.Id);
+                    if (dbEntry == null) daPlanner.AddServiceOrder(serviceOrder);
+                    else daPlanner.AddServiceOrderAppointments(serviceOrder, dbEntry);
+                }
+                else
+                {
+                    throw new Exception("no scope DAPlanner");
+                }
+            }
+        }
+
+        public string RemoveAppointmentServiceOrder(string content)
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var daPlanner = scope.ServiceProvider.GetService<IDA_Planner>();
+                if (daPlanner != null)
+                {
+                    var serviceOrder = JsonSerializer.Deserialize<PServiceOrder>(content);
+                    if (serviceOrder == null) throw new Exception(content);
+                    else 
+                    {
+                        serviceOrder.HandoverAppointment = null;
+                        serviceOrder.ReturnDate = null;
+                        daPlanner.EditServiceOrder(serviceOrder);
+                        return JsonSerializer.Serialize(serviceOrder);
+                    }
+                }
+                else throw new Exception("no scope DAPlanner");
+            }
+        }
+
+        public string AddSpareCarServiceOrder(string content)
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var daPlanner = scope.ServiceProvider.GetService<IDA_Planner>();
+                if (daPlanner != null)
+                {
+                    var serviceOrder = JsonSerializer.Deserialize<PServiceOrder>(content);
+                    if (serviceOrder == null) throw new Exception(content);
+                    var dbEntry = daPlanner.GetServiceOrder(serviceOrder.Id);
+                    if (dbEntry != null)
+                    {
+                        daPlanner.AddServiceOrderSpareCar(dbEntry);
+                        dbEntry = daPlanner.GetServiceOrder(serviceOrder.Id);
+                        if (dbEntry == null) throw new Exception("new dbentry after addsparecar N/A");
+                        return JsonSerializer.Serialize(dbEntry);
+                    }
+                    else throw new Exception(content);
+                }
+                else throw new Exception("no scope DAPlanner");
+            }
         }
 
     }

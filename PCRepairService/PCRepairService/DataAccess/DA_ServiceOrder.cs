@@ -13,11 +13,13 @@ namespace PCRepairService.DataAccess
     {
         private readonly ServiceDBContext _context;
         private readonly ILogger _logger;
+        private readonly IDA_Timestamps _timestamps;
 
-        public DA_ServiceOrder(ServiceDBContext context, ILogger<DA_ServiceOrder> logger)
+        public DA_ServiceOrder(ServiceDBContext context, ILogger<DA_ServiceOrder> logger, IDA_Timestamps ts)
         {
             _context = context;
             _logger = logger;
+            _timestamps = ts;
         }
 
         public async Task AddAsync(ServiceOrder serviceOrder)
@@ -58,6 +60,7 @@ namespace PCRepairService.DataAccess
             await _context.ServiceOrderSagaLog.AddAsync(sagalog);
             await _context.SaveChangesAsync();
             _logger.LogInformation($"[#SAGA {sagalog.Id}] Started Saga at {DateTimeOffset.Now.ToString("hh.mm.ss.ffffff")}");
+            await _timestamps.AddAsync(DateTimeOffset.Now.ToString("hh.mm.ss.ffffff"), sagalog.Id);
             return sagalog.Id;
         }
 
@@ -96,9 +99,12 @@ namespace PCRepairService.DataAccess
                 Timestamp = DateTime.UtcNow,
                 SagaId = sagaId
             };
-            await _context.OutboxMessages.AddAsync(message);
-            //_logger.LogInformation($"added message at {DateTimeOffset.Now.ToString("hh.mm.ss.ffffff")}");
-            await _context.SaveChangesAsync();
+            if(messageType != "_")
+            {
+                await _context.OutboxMessages.AddAsync(message);
+                //_logger.LogInformation($"added message at {DateTimeOffset.Now.ToString("hh.mm.ss.ffffff")}");
+                await _context.SaveChangesAsync();
+            }
             _logger.LogInformation($"[#SAGA {sagaId}] SagaMessageAsync SaveChangesAsync at {DateTimeOffset.Now.ToString("hh.mm.ss.ffffff")}");
             await EditSagaAsync(sagaId, nextSaga, compensate);
         }
@@ -168,7 +174,7 @@ namespace PCRepairService.DataAccess
             }
         }
 
-        public async Task EditAsync(long sagaid, string nextstep, ServiceOrder serviceOrder)
+        public async Task EditAsync(ServiceOrder serviceOrder)
         {
             var dbEntry = await _context.ServiceOrders.FindAsync(serviceOrder.Id);
             if (dbEntry != null)
@@ -180,6 +186,7 @@ namespace PCRepairService.DataAccess
                 dbEntry.IsCompleted = serviceOrder.IsCompleted;
                 dbEntry.HandoverAppointment = serviceOrder.HandoverAppointment;
                 dbEntry.ReturnDate = serviceOrder.ReturnDate;
+                dbEntry.SpareCar = serviceOrder.SpareCar;
                 _context.ServiceOrders.Entry(dbEntry).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
             }

@@ -13,10 +13,13 @@ builder.Logging.AddConsole();
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("PCRepairDB");
 builder.Services.AddScoped<IDA_ServiceOrder, DA_ServiceOrder>();
+builder.Services.AddScoped<IDA_Timestamps, DA_Timestamps>();
+builder.Services.AddScoped<IDA_StopTime, DA_StopTime>();
+builder.Services.AddScoped<ISagaHandler, SagaHandler>();
 builder.Services.AddDbContext<ServiceDBContext>(x => x.UseNpgsql(connectionString));
 builder.Services.AddSingleton<IDbContextFactory<ServiceDBContext>, ServiceDBContextFactory>();
 //builder.Services.AddSingleton<IMessenger, ServiceMessenger>();
-builder.Services.AddScoped<ISagaHandler, SagaHandler>();
+builder.Services.AddSingleton<IRepairTimer, RepairTimer>();
 builder.Services.AddHostedService<ServiceMessenger>();
 
 builder.Services.AddControllers();

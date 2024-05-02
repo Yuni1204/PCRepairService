@@ -19,15 +19,21 @@ namespace PCRepairService.Controllers
     {
         private readonly ILogger _logger;
         private readonly IDA_ServiceOrder _DAServiceOrder;
+        private readonly IDA_Timestamps _DATimestamps;
         private readonly ISagaHandler _SagaHandler;
         private readonly ServiceDBContext _context;
 
-        public ModuServiceOrderController(ServiceDBContext context, IDA_ServiceOrder so, ILogger<ModuServiceOrderController> logger, ISagaHandler sagaHandler)
+        public IRepairTimer _repairTimer;
+
+        public ModuServiceOrderController(ServiceDBContext context, IDA_ServiceOrder so, ILogger<ModuServiceOrderController> logger, 
+            ISagaHandler sagaHandler, IDA_Timestamps ts, IRepairTimer repairtimer)
         {
             _context = context;
             _DAServiceOrder = so;
             _logger = logger;
             _SagaHandler = sagaHandler;
+            _DATimestamps = ts;
+            _repairTimer = repairtimer;
         }
 
         // GET: api/ServiceOrder
@@ -127,10 +133,18 @@ namespace PCRepairService.Controllers
             await _SagaHandler.StartServiceOrderSagaAsync(ServiceOrder);
 
             //await _DAServiceOrder.AddWithMessageAsync(ServiceOrder, "ServiceOrders", "ServiceOrderCreated");
-            
+
+            //await Task.WhenAll(task1);
+
             stopwatch.Stop();
             TimeSpan ts = stopwatch.Elapsed;
-            _logger.LogInformation($"[#SAGA] POST-Request: {String.Format("{0:00}.{1:00}", ts.Seconds, ts.Milliseconds / 10)}");
+            var newstoptime = new RepairStopTime
+            {
+                ServiceOrderId = ServiceOrder.Id,
+                StopTime = ts.Milliseconds
+            };
+            _repairTimer.AddStoppedTime(newstoptime);
+            _logger.LogInformation($"[#SAGA] ID? {ServiceOrder.Id} POST-Request: {String.Format("{0:00000}", ts.Milliseconds)}");
             return CreatedAtAction("GetServiceOrder", new { id = ServiceOrder.Id }, ServiceOrder);
         }
 

@@ -13,6 +13,6 @@ namespace PCRepairService.Interfaces
         Task<long> CreateSagaAsync(String nextSaga);
         Task EditSagaAsync(long id, string nextstep, bool compensate);
         void DeleteAsync(long id);
-        Task EditAsync(long id, string nextstep, ServiceOrder serviceOrder);
+        Task EditAsync(ServiceOrder serviceOrder);
     }
 }

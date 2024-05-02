@@ -9,13 +9,15 @@ namespace PCRepairService
     {
         private readonly ILogger _logger;
         private readonly IDA_ServiceOrder _daServiceOrder;
+        private readonly IDA_Timestamps _timestamps ;
         //private readonly IMessenger _messenger;
 
-        public SagaHandler(ILogger<SagaHandler> logger, IDA_ServiceOrder daServiceOrder/*, IMessenger messenger*/) 
+        public SagaHandler(ILogger<SagaHandler> logger, IDA_ServiceOrder daServiceOrder/*, IMessenger messenger*/, IDA_Timestamps ts) 
         { 
             _logger = logger;
             _daServiceOrder = daServiceOrder;
             //_messenger = messenger;
+            _timestamps = ts;
         }
 
         public async Task StartServiceOrderSagaAsync(ServiceOrder serviceOrder)
@@ -33,10 +35,11 @@ namespace PCRepairService
 
         public async Task CompensateConfirmAppointmentFail(ServiceOrder serviceOrder, long sagaId)
         {
-            serviceOrder.ReturnDate = null;
-            serviceOrder.HandoverAppointment = null;
-            await _daServiceOrder.EditAsync(sagaId, "null", serviceOrder);
+            //serviceOrder.ReturnDate = null;
+            //serviceOrder.HandoverAppointment = null;
+            await _daServiceOrder.EditAsync(serviceOrder);
             await _daServiceOrder.SagaMessageAsync(serviceOrder, "ServiceOrders", "_", "null", sagaId, true);
+            await _timestamps.AddAsync(DateTimeOffset.Now.ToString("hh.mm.ss.ffffff"), sagaId);
         }
 
         public async Task ReserveSpareCar(ServiceOrder serviceOrder, long sagaId)
@@ -51,7 +54,9 @@ namespace PCRepairService
 
         public async Task EndServiceOrderSagaAsync(ServiceOrder serviceOrder, long id)
         {
+            await _daServiceOrder.EditAsync(serviceOrder);
             await _daServiceOrder.EditSagaAsync(id, "null", false); //bisher setzt er endserviceorder saga von alleine
+            await _timestamps.AddAsync(DateTimeOffset.Now.ToString("hh.mm.ss.ffffff"), id);
         }
     }
 }

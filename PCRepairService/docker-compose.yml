@@ -33,6 +33,22 @@ services:
             timeout: 5s
             retries: 3
 
+    PlannerPSQL:
+        image: postgres
+        ports:
+            - "1234:5432"
+        environment:
+            POSTGRES_PASSWORD: "12345678"
+        volumes:
+            - planner-data:/var/lib/postgresql/data
+        networks:
+            - PCRepairNetwork
+        # healthcheck:
+        #     test: ["CMD-SHELL", "pg_isready -U postgres -d PlannerDB"]
+        #     interval: 10s
+        #     timeout: 5s
+        #     retries: 3
+
     # adminer:
     #     image: adminer
     #     ports:
@@ -58,6 +74,7 @@ services:
             retries: 5
 volumes: 
     postgres-data:
+    planner-data:
 networks:
     PCRepairNetwork:
         driver: bridge

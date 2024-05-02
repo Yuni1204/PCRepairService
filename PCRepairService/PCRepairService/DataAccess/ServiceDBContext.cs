@@ -12,6 +12,8 @@ namespace PCRepairService.DataAccess
         public DbSet<ServiceOrder> ServiceOrders { get; set; }
         public DbSet<Message> OutboxMessages { get; set; }
         public DbSet<SagaServiceOrder> ServiceOrderSagaLog { get; set; }
+        public DbSet<Timestamps> Timestamps { get; set; }
+        public DbSet<RepairStopTime> StopTime { get; set; }
 
         public ServiceDBContext(IConfiguration configuration)
         {
@@ -42,6 +44,8 @@ namespace PCRepairService.DataAccess
             modelBuilder.Entity<ServiceOrder>().HasKey(e => e.Id);
             //modelBuilder.Entity<Message>().HasKey(e => e.Id);
             modelBuilder.Entity<SagaServiceOrder>().HasKey(e => e.Id);
+            modelBuilder.Entity<Timestamps>().HasKey(e => e.Id);
+            modelBuilder.Entity<RepairStopTime>().HasKey(e => e.ServiceOrderId);
         }
 
 

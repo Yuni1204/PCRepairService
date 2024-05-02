@@ -1,9 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace PCRepairService.Models
+﻿namespace RepairPlanner.Models
 {
-    //Service Order -> simple datamodel with everything it needs
-    public class ServiceOrder
+    public class PServiceOrder
     {
         public long Id { get; set; }
         public string? ServiceOrderType { get; set; }
@@ -13,7 +10,6 @@ namespace PCRepairService.Models
         public bool IsCompleted { get; set; }
         public DateOnly? HandoverAppointment {  get; set; }
         public DateOnly? ReturnDate { get; set; }
-        public bool SpareCar {  get; set; }
-
+        public bool SpareCar { get; set; }
     }
 }
