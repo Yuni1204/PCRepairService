@@ -194,6 +194,13 @@ namespace PCRepairService
                         if (serviceOrder == null) throw new Exception(messageString);
                         await sagaHandler.CompensateConfirmAppointmentFail(serviceOrder, sagaId);
                         await _repairTimer.SaveStoppedTime(serviceOrder.Id);
+                        var newTimeStamp = new Timestamps
+                        {
+                            ServiceOrderId = serviceOrder.Id,
+                            Timestamp1 = DateTime.Now
+                        };
+                        _repairTimer.AddIrlDuration(newTimeStamp);
+                        await _repairTimer.SaveDuration(serviceOrder.Id);
                         return $"CaseAppointmentFail for SagaId {sagaId} ended at {DateTimeOffset.Now.ToString("hh.mm.ss.ffffff")} ";
                     }
                     else
@@ -220,6 +227,13 @@ namespace PCRepairService
                         var serviceOrder = JsonSerializer.Deserialize<ServiceOrder>(messageString);
                         if (serviceOrder == null) throw new Exception(messageString);
                         await sagaHandler.EndServiceOrderSagaAsync(serviceOrder, sagaId);
+                        var newTimeStamp = new Timestamps
+                        {
+                            ServiceOrderId = serviceOrder.Id,
+                            Timestamp1 = DateTime.Now
+                        };
+                        _repairTimer.AddIrlDuration(newTimeStamp);
+                        await _repairTimer.SaveDuration(serviceOrder.Id);
                         return $"CaseSpareCarSuccess for SagaId {sagaId} ended at {DateTimeOffset.Now.ToString("hh.mm.ss.ffffff")} ";
                     }
                     else

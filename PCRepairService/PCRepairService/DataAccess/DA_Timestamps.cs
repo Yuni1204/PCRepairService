@@ -12,17 +12,9 @@ namespace PCRepairService.DataAccess
             _context = context;
         }
 
-        public async Task AddAsync(string timestampstr, long id)
+        public async Task AddTimeSpanAsync(Timestamps timestamp)
         {
-            string[] splitTimestamp = timestampstr.Split('.');
-            var entry = new Timestamps
-            {
-                SagaNumber = id,
-                minute = Int32.Parse(splitTimestamp[1]),
-                second = Int32.Parse(splitTimestamp[2]),
-                subsecond = Int32.Parse(splitTimestamp[3]),
-            };
-            await _context.Timestamps.AddAsync(entry);
+            await _context.Timestamps.AddAsync(timestamp);
             await _context.SaveChangesAsync();
         }
     }

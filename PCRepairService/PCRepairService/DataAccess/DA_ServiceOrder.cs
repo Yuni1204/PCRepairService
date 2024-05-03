@@ -60,7 +60,6 @@ namespace PCRepairService.DataAccess
             await _context.ServiceOrderSagaLog.AddAsync(sagalog);
             await _context.SaveChangesAsync();
             _logger.LogInformation($"[#SAGA {sagalog.Id}] Started Saga at {DateTimeOffset.Now.ToString("hh.mm.ss.ffffff")}");
-            await _timestamps.AddAsync(DateTimeOffset.Now.ToString("hh.mm.ss.ffffff"), sagalog.Id);
             return sagalog.Id;
         }
 

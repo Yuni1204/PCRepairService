@@ -2,10 +2,9 @@
 {
     public class Timestamps
     {
-        public long Id { get; set; }
-        public long SagaNumber { get; set; }
-        public int minute { get; set; }
-        public int second { get; set; }
-        public int subsecond { get; set; }
+        public long ServiceOrderId { get; set; }
+        public DateTime Timestamp1 { get; set; }
+        public DateTime? Timestamp2{ get; set; }
+        public TimeSpan? Duration { get; set; }
     }
 }

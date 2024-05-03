@@ -144,6 +144,12 @@ namespace PCRepairService.Controllers
                 StopTime = ts.Milliseconds
             };
             _repairTimer.AddStoppedTime(newstoptime);
+            var newTimeStamp = new Timestamps
+            {
+                ServiceOrderId = ServiceOrder.Id,
+                Timestamp1 = DateTime.Now
+            };
+            _repairTimer.AddIrlDuration(newTimeStamp);
             _logger.LogInformation($"[#SAGA] ID? {ServiceOrder.Id} POST-Request: {String.Format("{0:00000}", ts.Milliseconds)}");
             return CreatedAtAction("GetServiceOrder", new { id = ServiceOrder.Id }, ServiceOrder);
         }

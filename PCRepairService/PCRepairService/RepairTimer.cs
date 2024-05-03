@@ -7,10 +7,12 @@ namespace PCRepairService
     {
         private IServiceScopeFactory _serviceScopeFactory;
         List<RepairStopTime> _stoppedTime;
+        List<Timestamps> _irlDuration;
 
         public RepairTimer(IServiceScopeFactory serviceScopeFactory) {
             _serviceScopeFactory = serviceScopeFactory;
             _stoppedTime = new List<RepairStopTime>();
+            _irlDuration = new List<Timestamps>();
         }
 
         public void AddStoppedTime(RepairStopTime stoppedtime)
@@ -38,5 +40,34 @@ namespace PCRepairService
                 }
             }
         }
+
+        public void AddIrlDuration(Timestamps timestamp)
+        {
+            var target = _irlDuration.FirstOrDefault(obj => obj.ServiceOrderId == timestamp.ServiceOrderId);
+            if (target != null)
+            {
+                target.Timestamp2 = timestamp.Timestamp1;
+                TimeSpan diff = target.Timestamp1 - target.Timestamp1;
+                target.Duration = (diff.TotalMilliseconds < 0) ? (diff * -1) : diff;
+            }
+            else _irlDuration.Add(timestamp);
+        }
+
+        public async Task SaveDuration(long id)
+        {
+            var target = _irlDuration.FirstOrDefault(obj => obj.ServiceOrderId == id);
+            if (target != null)
+            {
+                using (var scope = _serviceScopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetService<IDA_Timestamps>();
+                    if (dbContext != null)
+                    {
+                        await dbContext.AddTimeSpanAsync(target);
+                    }
+                }
+            }
+        }
+
     }
 }
