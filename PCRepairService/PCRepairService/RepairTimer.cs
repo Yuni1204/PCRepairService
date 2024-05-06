@@ -47,8 +47,8 @@ namespace PCRepairService
             if (target != null)
             {
                 target.Timestamp2 = timestamp.Timestamp1;
-                TimeSpan diff = target.Timestamp1 - target.Timestamp1;
-                target.Duration = (diff.TotalMilliseconds < 0) ? (diff * -1) : diff;
+                TimeSpan diff = timestamp.Timestamp1 - target.Timestamp1;
+                target.Duration = (diff.TotalMilliseconds < 0) ? (diff.TotalMilliseconds * -1) : diff.TotalMilliseconds;
             }
             else _irlDuration.Add(timestamp);
         }

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.Json;
+using MessengerLibrary;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +24,7 @@ namespace PCRepairService.Controllers
         private readonly IDA_Timestamps _DATimestamps;
         private readonly ISagaHandler _SagaHandler;
         private readonly ServiceDBContext _context;
+        private SimpleMessenger _simpleMessenger;
 
         public IRepairTimer _repairTimer;
 
@@ -34,6 +37,7 @@ namespace PCRepairService.Controllers
             _SagaHandler = sagaHandler;
             _DATimestamps = ts;
             _repairTimer = repairtimer;
+            _simpleMessenger = new SimpleMessenger();
         }
 
         // GET: api/ServiceOrder
@@ -97,13 +101,57 @@ namespace PCRepairService.Controllers
         [HttpPost]
         public async Task<ActionResult<ServiceOrder>> PostServiceOrder(ServiceOrder ServiceOrder)
         {
+            Stopwatch stopwatch = Stopwatch.StartNew();
             Thread.Sleep(10);
             _logger.LogInformation("PostServiceOrder Requested");
             //imagine validation
 
-            await _DAServiceOrder.AddAsync(ServiceOrder);
-            //, "ServiceOrders", "ServiceOrderCreated"
-            //send message manually
+            var soObj = new ServiceOrder
+            {
+                Id = ServiceOrder.Id,
+                ServiceOrderType = ServiceOrder.ServiceOrderType,
+                Description = ServiceOrder.Description,
+                Name = ServiceOrder.Name,
+                Cost = ServiceOrder.Cost,
+                IsCompleted = ServiceOrder.IsCompleted,
+                SpareCar = false
+            };
+
+            await _DAServiceOrder.AddAsync(soObj);
+            var message = new Message
+            {
+                Id = 0,
+                exchange = "ServiceOrders",
+                messageType = "ServiceOrderCreated.NoSaga",
+                content = JsonSerializer.Serialize(soObj),
+                Timestamp = DateTime.UtcNow
+            };
+            _simpleMessenger.SendMessage(message);
+
+            soObj.HandoverAppointment = ServiceOrder.HandoverAppointment;
+            soObj.ReturnDate = ServiceOrder.ReturnDate;
+            await _DAServiceOrder.EditAsync(soObj);
+            message.messageType = "AppointmentSelected.NoSaga";
+            message.content = JsonSerializer.Serialize(soObj);
+            _simpleMessenger.SendMessage(message);
+
+            soObj.SpareCar = true;
+            await _DAServiceOrder.EditAsync(soObj);
+            message.messageType = "ReserveSpareCar.NoSaga";
+            message.content = JsonSerializer.Serialize(soObj);
+            _simpleMessenger.SendMessage(message);
+
+            stopwatch.Stop();
+            TimeSpan ts = stopwatch.Elapsed;
+
+            var newstoptime = new RepairStopTime
+            {
+                ServiceOrderId = soObj.Id,
+                StopTime = ts.Milliseconds,
+                Type = "None"
+            };
+            _repairTimer.AddStoppedTime(newstoptime);
+            await _repairTimer.SaveStoppedTime(newstoptime.ServiceOrderId);
 
             return CreatedAtAction("GetServiceOrder", new { id = ServiceOrder.Id }, ServiceOrder);
         }
@@ -111,12 +159,42 @@ namespace PCRepairService.Controllers
         [HttpPost("outbox")]
         public async Task<ActionResult<ServiceOrder>> PostServiceOrderOutbox(ServiceOrder ServiceOrder)
         {
+            Stopwatch stopwatch = Stopwatch.StartNew();
             Thread.Sleep(10);
             _logger.LogInformation("PostServiceOrderOutbox Requested");
             //imagine validation
 
-            await _DAServiceOrder.AddWithMessageAsync(ServiceOrder, "ServiceOrders", "ServiceOrderCreated");
+            var soObj = new ServiceOrder
+            {
+                Id = ServiceOrder.Id,
+                ServiceOrderType = ServiceOrder.ServiceOrderType,
+                Description = ServiceOrder.Description,
+                Name = ServiceOrder.Name,
+                Cost = ServiceOrder.Cost,
+                IsCompleted = ServiceOrder.IsCompleted,
+                SpareCar = false
+            };
 
+            await _DAServiceOrder.AddWithMessageAsync(soObj, "ServiceOrders", "ServiceOrderCreated.NoSaga");
+
+            soObj.HandoverAppointment = ServiceOrder.HandoverAppointment;
+            soObj.ReturnDate = ServiceOrder.ReturnDate;
+            await _DAServiceOrder.EditWithMessageAsync(soObj, "ServiceOrders", "AppointmentSelected.NoSaga");
+
+            soObj.SpareCar = true;
+            await _DAServiceOrder.EditWithMessageAsync(soObj, "ServiceOrders", "ReserveSpareCar.NoSaga");
+
+            stopwatch.Stop();
+            TimeSpan ts = stopwatch.Elapsed;
+
+            var newstoptime = new RepairStopTime
+            {
+                ServiceOrderId = ServiceOrder.Id,
+                StopTime = ts.Milliseconds,
+                Type = "Outbox"
+            };
+            _repairTimer.AddStoppedTime(newstoptime);
+            await _repairTimer.SaveStoppedTime(newstoptime.ServiceOrderId);
             return CreatedAtAction("GetServiceOrder", new { id = ServiceOrder.Id }, ServiceOrder);
         }
 
@@ -127,51 +205,27 @@ namespace PCRepairService.Controllers
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
             Thread.Sleep(10);
-            //_logger.LogInformation("PostServiceOrderSaga Requested");
             //imagine validation
 
             await _SagaHandler.StartServiceOrderSagaAsync(ServiceOrder);
-
-            //await _DAServiceOrder.AddWithMessageAsync(ServiceOrder, "ServiceOrders", "ServiceOrderCreated");
-
-            //await Task.WhenAll(task1);
 
             stopwatch.Stop();
             TimeSpan ts = stopwatch.Elapsed;
             var newstoptime = new RepairStopTime
             {
                 ServiceOrderId = ServiceOrder.Id,
-                StopTime = ts.Milliseconds
+                StopTime = ts.Milliseconds,
+                Type = "Saga"
             };
             _repairTimer.AddStoppedTime(newstoptime);
             var newTimeStamp = new Timestamps
             {
                 ServiceOrderId = ServiceOrder.Id,
-                Timestamp1 = DateTime.Now
+                Timestamp1 = DateTime.UtcNow,
+                Type = "Saga"
             };
             _repairTimer.AddIrlDuration(newTimeStamp);
             _logger.LogInformation($"[#SAGA] ID? {ServiceOrder.Id} POST-Request: {String.Format("{0:00000}", ts.Milliseconds)}");
-            return CreatedAtAction("GetServiceOrder", new { id = ServiceOrder.Id }, ServiceOrder);
-        }
-
-        [HttpPost("sagaV2")]
-        [SwaggerOperation("CreateServiceOrder")]
-        public async Task<ActionResult<ServiceOrder>> TrySaga(ServiceOrder ServiceOrder)
-        {
-            _logger.LogInformation("TrySaga Requested");
-            //imagine validation
-            //REST calls to get information of appointments + car replacement availability
-            //take first recommended appointment
-            //another check if still available?
-            //send messages to microservices for approval
-            //what can go wrong? 
-            //always in between REST and actually trying to book, might happen something
-            //
-
-            await _SagaHandler.StartServiceOrderSagaAsync(ServiceOrder);
-
-            //await _DAServiceOrder.AddWithMessageAsync(ServiceOrder, "ServiceOrders", "ServiceOrderCreated");
-
             return CreatedAtAction("GetServiceOrder", new { id = ServiceOrder.Id }, ServiceOrder);
         }
 

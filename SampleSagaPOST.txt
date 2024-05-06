@@ -1,0 +1,1 @@
+{ "id": 0, "serviceOrderType": "Repair", "description": "somethingkaputt", "name": "Joe", "cost": 1, "isCompleted": false, "handoverAppointment": "2024-05-03", "returnDate": "2024-05-03", "spareCar": false }

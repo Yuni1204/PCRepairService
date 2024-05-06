@@ -50,6 +50,35 @@ namespace PCRepairService.DataAccess
             _logger.LogInformation($"SaveChangesAsync at {DateTimeOffset.Now.ToString("hh.mm.ss.ffffff")}");
         }
 
+        public async Task EditWithMessageAsync(ServiceOrder serviceOrder, string exchange, string messageType)
+        {
+            var dbEntry = await _context.ServiceOrders.FindAsync(serviceOrder.Id);
+            if (dbEntry != null)
+            {
+                dbEntry.ServiceOrderType = serviceOrder.ServiceOrderType;
+                dbEntry.Description = serviceOrder.Description;
+                dbEntry.Name = serviceOrder.Name;
+                dbEntry.Cost = serviceOrder.Cost;
+                dbEntry.IsCompleted = serviceOrder.IsCompleted;
+                dbEntry.HandoverAppointment = serviceOrder.HandoverAppointment;
+                dbEntry.ReturnDate = serviceOrder.ReturnDate;
+                dbEntry.SpareCar = serviceOrder.SpareCar;
+                _context.ServiceOrders.Entry(dbEntry).State = EntityState.Modified;
+            }
+
+            var message = new Message
+            {
+                Id = 0,
+                exchange = exchange,
+                messageType = messageType,
+                content = JsonSerializer.Serialize(serviceOrder),
+                Timestamp = DateTime.UtcNow
+            };
+            await _context.OutboxMessages.AddAsync(message);
+            _logger.LogInformation($"added message: {message} at {DateTimeOffset.Now.ToString("hh.mm.ss.ffffff")}");
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<long> CreateSagaAsync(String nextSaga)
         {
             var sagalog = new SagaServiceOrder
@@ -72,7 +101,7 @@ namespace PCRepairService.DataAccess
             await _context.SaveChangesAsync();
             var message = new Message
             {
-                Id = serviceOrder.Id,
+                Id = 0,
                 exchange = exchange,
                 messageType = messageType,
                 content = JsonSerializer.Serialize(serviceOrder),

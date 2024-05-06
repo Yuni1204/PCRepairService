@@ -197,7 +197,7 @@ namespace PCRepairService
                         var newTimeStamp = new Timestamps
                         {
                             ServiceOrderId = serviceOrder.Id,
-                            Timestamp1 = DateTime.Now
+                            Timestamp1 = DateTime.UtcNow
                         };
                         _repairTimer.AddIrlDuration(newTimeStamp);
                         await _repairTimer.SaveDuration(serviceOrder.Id);
@@ -230,7 +230,7 @@ namespace PCRepairService
                         var newTimeStamp = new Timestamps
                         {
                             ServiceOrderId = serviceOrder.Id,
-                            Timestamp1 = DateTime.Now
+                            Timestamp1 = DateTime.UtcNow
                         };
                         _repairTimer.AddIrlDuration(newTimeStamp);
                         await _repairTimer.SaveDuration(serviceOrder.Id);

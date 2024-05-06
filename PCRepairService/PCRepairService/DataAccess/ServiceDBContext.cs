@@ -46,6 +46,7 @@ namespace PCRepairService.DataAccess
             modelBuilder.Entity<SagaServiceOrder>().HasKey(e => e.Id);
             modelBuilder.Entity<Timestamps>().HasKey(e => e.ServiceOrderId);
             modelBuilder.Entity<RepairStopTime>().HasKey(e => e.ServiceOrderId);
+            modelBuilder.Entity<Message>().HasKey(e => e.Id);
         }
 
 

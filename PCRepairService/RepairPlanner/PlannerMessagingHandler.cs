@@ -75,7 +75,7 @@ namespace RepairPlanner
                 {
                     _logger.LogInformation($" [x] MessageType: null, Received: {message}");
                 }
-                if(messageType == "ServiceOrderCreated")
+                else if(messageType == "ServiceOrderCreated")
                 {
 
                     //Handle the message content (for example create service order with all necessary data) imaginary for now
@@ -141,6 +141,26 @@ namespace RepairPlanner
                     }
                     _logger.LogInformation($"[SagaId {sagaId}] SpareCar Reserve at {DateTimeOffset.Now.ToString("hh.mm.ss.ffffff")}");
                     SendMessage(response);
+                }
+                else if (messageType.Split(".")[1] == "NoSaga")
+                {
+                    switch (messageType)
+                    {
+                        case "ServiceOrderCreated.NoSaga":
+                            saveNewServiceOrder(message);
+                            _logger.LogInformation($"ServiceOrderCreated.NoSaga");
+                            break;
+                        case "AppointmentSelected.NoSaga":
+                            saveNewServiceOrder(message);
+                            _logger.LogInformation($"AppointmentSelected.NoSaga");
+                            break;
+                        case "ReserveSpareCar.NoSaga":
+                            AddSpareCarServiceOrder(message);
+                            _logger.LogInformation($"ReserveSpareCar.NoSaga");
+                            break;
+                        default:
+                            break;
+                    }
                 }
                 else
                 {

@@ -6,8 +6,9 @@ namespace PCRepairService.Interfaces
     {
         Task<ServiceOrder?> GetByIdAsync(long id);
         Task<IEnumerable<ServiceOrder>> GetAllAsync();
-        Task AddAsync(ServiceOrder aiso);
-        Task AddWithMessageAsync(ServiceOrder aiso, string exchange, string messageType);
+        Task AddAsync(ServiceOrder serviceOrder);
+        Task AddWithMessageAsync(ServiceOrder serviceOrder, string exchange, string messageType);
+        Task EditWithMessageAsync(ServiceOrder serviceOrder, string exchange, string messageType);
         Task SagaAddWithMessageAsync(ServiceOrder ServiceOrder, string exchange, string messageType, string nextSaga, long sagaId);
         Task SagaMessageAsync(ServiceOrder ServiceOrder, string exchange, string messageType, string nextSaga, long sagaId, bool compensate);
         Task<long> CreateSagaAsync(String nextSaga);
