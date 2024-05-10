@@ -24,12 +24,12 @@ namespace PCRepairService.Controllers
         private readonly IDA_Timestamps _DATimestamps;
         private readonly ISagaHandler _SagaHandler;
         private readonly ServiceDBContext _context;
-        private SimpleMessenger _simpleMessenger;
+        private ISimpleMessenger _simpleMessenger;
 
         public IRepairTimer _repairTimer;
 
         public ModuServiceOrderController(ServiceDBContext context, IDA_ServiceOrder so, ILogger<ModuServiceOrderController> logger, 
-            ISagaHandler sagaHandler, IDA_Timestamps ts, IRepairTimer repairtimer)
+            ISagaHandler sagaHandler, IDA_Timestamps ts, IRepairTimer repairtimer, ISimpleMessenger simpleMessenger)
         {
             _context = context;
             _DAServiceOrder = so;
@@ -37,7 +37,7 @@ namespace PCRepairService.Controllers
             _SagaHandler = sagaHandler;
             _DATimestamps = ts;
             _repairTimer = repairtimer;
-            _simpleMessenger = new SimpleMessenger();
+            _simpleMessenger = simpleMessenger;
         }
 
         // GET: api/ServiceOrder
@@ -101,6 +101,7 @@ namespace PCRepairService.Controllers
         [HttpPost]
         public async Task<ActionResult<ServiceOrder>> PostServiceOrder(ServiceOrder ServiceOrder)
         {
+            //no patterns POST
             Stopwatch stopwatch = Stopwatch.StartNew();
             Thread.Sleep(10);
             _logger.LogInformation("PostServiceOrder Requested");
@@ -108,7 +109,6 @@ namespace PCRepairService.Controllers
 
             var soObj = new ServiceOrder
             {
-                Id = ServiceOrder.Id,
                 ServiceOrderType = ServiceOrder.ServiceOrderType,
                 Description = ServiceOrder.Description,
                 Name = ServiceOrder.Name,
@@ -120,7 +120,6 @@ namespace PCRepairService.Controllers
             await _DAServiceOrder.AddAsync(soObj);
             var message = new Message
             {
-                Id = 0,
                 exchange = "ServiceOrders",
                 messageType = "ServiceOrderCreated.NoSaga",
                 content = JsonSerializer.Serialize(soObj),
@@ -153,12 +152,13 @@ namespace PCRepairService.Controllers
             _repairTimer.AddStoppedTime(newstoptime);
             await _repairTimer.SaveStoppedTime(newstoptime.ServiceOrderId);
 
-            return CreatedAtAction("GetServiceOrder", new { id = ServiceOrder.Id }, ServiceOrder);
+            return CreatedAtAction("GetServiceOrder", new { id = soObj.Id }, soObj);
         }
 
         [HttpPost("outbox")]
         public async Task<ActionResult<ServiceOrder>> PostServiceOrderOutbox(ServiceOrder ServiceOrder)
         {
+            //only outbox POST
             Stopwatch stopwatch = Stopwatch.StartNew();
             Thread.Sleep(10);
             _logger.LogInformation("PostServiceOrderOutbox Requested");
@@ -189,13 +189,13 @@ namespace PCRepairService.Controllers
 
             var newstoptime = new RepairStopTime
             {
-                ServiceOrderId = ServiceOrder.Id,
+                ServiceOrderId = soObj.Id,
                 StopTime = ts.Milliseconds,
                 Type = "Outbox"
             };
             _repairTimer.AddStoppedTime(newstoptime);
             await _repairTimer.SaveStoppedTime(newstoptime.ServiceOrderId);
-            return CreatedAtAction("GetServiceOrder", new { id = ServiceOrder.Id }, ServiceOrder);
+            return CreatedAtAction("GetServiceOrder", new { id = soObj.Id }, soObj);
         }
 
         [HttpPost("saga")]
@@ -203,6 +203,7 @@ namespace PCRepairService.Controllers
         [SwaggerOperation("CreateServiceOrder")]
         public async Task<ActionResult<ServiceOrder>> PostServiceOrderSaga(ServiceOrder ServiceOrder)
         {
+            //outbox + Saga POST
             Stopwatch stopwatch = Stopwatch.StartNew();
             Thread.Sleep(10);
             //imagine validation

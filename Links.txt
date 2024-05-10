@@ -1,2 +1,5 @@
 https://www.rabbitmq.com/tutorials/tutorial-one-dotnet
 https://learn.microsoft.com/en-us/aspnet/core/data/ef-mvc/complex-data-model?view=aspnetcore-8.0
+
+%%%DB data to csv%%%
+https://www.atlassian.com/data/sql/how-to-export-data-to-csv-or-excel

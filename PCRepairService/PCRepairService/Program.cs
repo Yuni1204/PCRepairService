@@ -20,6 +20,7 @@ builder.Services.AddDbContext<ServiceDBContext>(x => x.UseNpgsql(connectionStrin
 builder.Services.AddSingleton<IDbContextFactory<ServiceDBContext>, ServiceDBContextFactory>();
 //builder.Services.AddSingleton<IMessenger, ServiceMessenger>();
 builder.Services.AddSingleton<IRepairTimer, RepairTimer>();
+builder.Services.AddSingleton<ISimpleMessenger, SimpleMessenger>();
 builder.Services.AddHostedService<ServiceMessenger>();
 
 builder.Services.AddControllers();

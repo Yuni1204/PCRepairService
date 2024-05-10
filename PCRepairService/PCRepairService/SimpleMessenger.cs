@@ -3,10 +3,11 @@ using RabbitMQ.Client;
 using System.Text;
 using MessengerLibrary;
 using System.Text.Json;
+using PCRepairService.Interfaces;
 
 namespace PCRepairService
 {
-    public class SimpleMessenger
+    public class SimpleMessenger : ISimpleMessenger
     {
         protected readonly ConnectionFactory _factory;
         protected readonly IConnection _connection;
@@ -34,13 +35,12 @@ namespace PCRepairService
                 { "MessageType", messageobj.messageType }
             };
 
-            string content = JsonSerializer.Serialize(messageobj.content);
-            var body = Encoding.UTF8.GetBytes(content);
+            if (messageobj.content == null) throw new Exception("SimpleMessenger");
+            var body = Encoding.UTF8.GetBytes(messageobj.content);
             _channel.BasicPublish(exchange: messageobj.exchange,
                                  routingKey: string.Empty,
                                  basicProperties: _props,
                                  body: body);
         }
-
     }
 }

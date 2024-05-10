@@ -38,7 +38,6 @@ namespace PCRepairService.DataAccess
             await _context.SaveChangesAsync();
             var message = new Message
             {
-                Id = serviceOrder.Id,
                 exchange = exchange,
                 messageType = messageType,
                 content = JsonSerializer.Serialize(serviceOrder),
@@ -68,7 +67,6 @@ namespace PCRepairService.DataAccess
 
             var message = new Message
             {
-                Id = 0,
                 exchange = exchange,
                 messageType = messageType,
                 content = JsonSerializer.Serialize(serviceOrder),
@@ -101,15 +99,14 @@ namespace PCRepairService.DataAccess
             await _context.SaveChangesAsync();
             var message = new Message
             {
-                Id = 0,
                 exchange = exchange,
                 messageType = messageType,
                 content = JsonSerializer.Serialize(serviceOrder),
                 Timestamp = DateTime.UtcNow,
                 SagaId = sagaId
-            };            
+            };
             await _context.OutboxMessages.AddAsync(message);
-            //_logger.LogInformation($"added message at {DateTimeOffset.Now.ToString("hh.mm.ss.ffffff")}");
+            _logger.LogInformation($"TESTTESTTESTTESTTEST \n message id {message.Id} \n TESTTESTTESTTESTTEST");
             await _context.SaveChangesAsync();
             _logger.LogInformation($"[#SAGA {sagaId}] SagaAddWithMessageAsync SaveChangesAsync at {DateTimeOffset.Now.ToString("hh.mm.ss.ffffff")}");
             await EditSagaAsync(sagaId, nextSaga, false);
@@ -120,7 +117,6 @@ namespace PCRepairService.DataAccess
         {
             var message = new Message
             {
-                Id = serviceOrder.Id,
                 exchange = exchange,
                 messageType = messageType,
                 content = JsonSerializer.Serialize(serviceOrder),
@@ -130,7 +126,7 @@ namespace PCRepairService.DataAccess
             if(messageType != "_")
             {
                 await _context.OutboxMessages.AddAsync(message);
-                //_logger.LogInformation($"added message at {DateTimeOffset.Now.ToString("hh.mm.ss.ffffff")}");
+                _logger.LogInformation($"TESTTESTTESTTESTTEST \n message id {message.Id} \n TESTTESTTESTTESTTEST");
                 await _context.SaveChangesAsync();
             }
             _logger.LogInformation($"[#SAGA {sagaId}] SagaMessageAsync SaveChangesAsync at {DateTimeOffset.Now.ToString("hh.mm.ss.ffffff")}");
